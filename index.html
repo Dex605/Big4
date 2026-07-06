@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Big4</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxRjI0MjAiLz4KICA8dGV4dCB4PSIzMiIgeT0iNDEiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnRnJhdW5jZXMnLCBzZXJpZiIgZm9udC1zaXplPSIyNiIgZmlsbD0iI0ZBRkFGOCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QjQ8L3RleHQ+Cjwvc3ZnPgo=" type="image/svg+xml">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400;500&family=Manrope:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #FAFAF8;
+  --card: #EDE8DE;
+  --ink: #1F2420;
+  --ink-soft: #5C645E;
+  --emerald: #2F6F5E;
+  --emerald-dark: #204F43;
+  --gold: #C9A227;
+  --line: #E1DCD0;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Manrope', sans-serif;
+  font-weight: 300;
+  font-size: 14.5px;
+  letter-spacing: 0.1px;
+  line-height: 1.5;
+}
+
+h1, h2, h3, .display {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+}
+
+/* ---------- Four-dot signature mark ---------- */
+.mark {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3px;
+  width: 16px;
+  height: 16px;
+}
+.mark span {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--emerald);
+}
+.mark span:nth-child(2) { background: var(--gold); }
+.mark span:nth-child(3) { background: var(--gold); }
+.mark span:nth-child(4) { background: var(--emerald); }
+
+.mark.lg { width: 34px; height: 34px; gap: 5px; }
+
+/* ---------- Landing page ---------- */
+#landing-screen {
+  position: relative;
+  min-height: 100vh;
+  background: linear-gradient(160deg, var(--emerald-dark) 0%, #16352C 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 30px;
+}
+.landing-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 480px;
+}
+.landing-content h1 {
+  color: var(--bg);
+  font-size: 46px;
+  margin: 0 0 12px;
+}
+.landing-names {
+  justify-content: center;
+  margin: 0 auto 36px;
+  max-width: 300px;
+}
+.landing-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.landing-actions .btn { width: auto; padding: 12px 26px; }
+.btn.ghost.light {
+  border-color: rgba(250,250,248,0.4);
+  color: var(--bg);
+}
+.btn.ghost.light:hover { background: rgba(250,250,248,0.08); }
+
+@media (max-width: 500px) {
+  .landing-content h1 { font-size: 34px; }
+  .landing-actions { flex-direction: column; }
+}
+
+/* ---------- Auth screen ---------- */
+#auth-screen {
+  min-height: 100vh;
+  background: var(--emerald-dark);
+}
+.auth-layout {
+  min-height: 100vh;
+  display: flex;
+}
+.auth-story {
+  flex: 1.1;
+  position: relative;
+  background: linear-gradient(160deg, var(--emerald-dark) 0%, #16352C 100%);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+  overflow: hidden;
+}
+.story-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.story-pattern svg { width: 100%; height: 100%; }
+.story-content {
+  position: relative;
+  z-index: 1;
+  max-width: 380px;
+}
+.story-content .mark.lg { margin-bottom: 22px; }
+.story-content h1 {
+  color: var(--bg);
+  font-size: 40px;
+  margin: 0 0 12px;
+}
+.story-tagline {
+  font-size: 15px;
+  color: rgba(250,250,248,0.75);
+  line-height: 1.6;
+  margin: 0 0 34px;
+  max-width: 320px;
+}
+.story-names {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 22px;
+}
+.story-names li {
+  display: flex;
+  flex-direction: column;
+  border-left: 2px solid var(--gold);
+  padding-left: 10px;
+}
+.story-names li span {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  color: var(--bg);
+}
+.story-names li em {
+  font-style: normal;
+  font-size: 11.5px;
+  color: rgba(250,250,248,0.55);
+}
+
+.auth-form-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 24px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 38px 32px;
+  text-align: left;
+}
+.form-heading {
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+.auth-card p.sub {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin: 0 0 26px;
+}
+
+@media (max-width: 860px) {
+  .auth-layout { flex-direction: column; }
+  .auth-story { padding: 36px 28px; flex: none; }
+  .story-content h1 { font-size: 32px; }
+  .story-names { grid-template-columns: 1fr 1fr; }
+  .auth-form-side { padding: 30px 22px 60px; }
+}
+
+.field {
+  text-align: left;
+  margin-bottom: 14px;
+}
+.field label {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+select, input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--ink);
+}
+select:focus, input:focus {
+  outline: 2px solid var(--emerald);
+  outline-offset: 1px;
+}
+.btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: 9px;
+  border: none;
+  background: var(--emerald);
+  color: #fff;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn:hover { background: var(--emerald-dark); }
+.btn.ghost {
+  background: transparent;
+  color: var(--emerald);
+  border: 1px solid var(--emerald);
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  cursor: pointer;
+  margin-top: 14px;
+  text-decoration: underline;
+  font-family: 'Manrope', sans-serif;
+}
+
+/* ---------- App shell ---------- */
+#app-shell { display: none; min-height: 100vh; }
+#app-shell.active { display: flex; }
+
+.sidebar {
+  width: 210px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid var(--line);
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+  padding: 0 6px;
+}
+.brand span.name { font-family: 'Fraunces'; font-size: 19px; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.nav-item:hover { background: var(--bg); }
+.nav-item.active { background: var(--card); color: var(--ink); }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 10px 6px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dot-online {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--emerald); display: inline-block;
+}
+
+.main {
+  flex: 1;
+  padding: 26px 34px;
+  overflow-y: auto;
+  max-height: 100vh;
+}
+.page { display: none; }
+.page.active { display: block; }
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 22px;
+}
+.topbar h2 { font-size: 22px; margin: 0; }
+.topbar p { color: var(--ink-soft); font-size: 13px; margin: 4px 0 0; }
+
+/* ---------- Chat ---------- */
+.chat-wrap {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 130px);
+}
+.chat-members {
+  display: flex;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.member-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; color: var(--emerald-dark);
+  position: relative;
+  flex-shrink: 0;
+}
+.avatar.big { width: 54px; height: 54px; font-size: 18px; }
+.avatar .status {
+  position: absolute; bottom: -1px; right: -1px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--emerald); border: 2px solid #fff;
+}
+.avatar .status.off { background: #C7C2B6; }
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.msg { display: flex; gap: 10px; max-width: 70%; }
+.msg .bubble {
+  background: var(--card);
+  padding: 9px 13px;
+  border-radius: 12px;
+  font-size: 13.5px;
+}
+.msg .meta { font-size: 11px; color: var(--ink-soft); margin-bottom: 3px; }
+.msg.me { align-self: flex-end; flex-direction: row-reverse; }
+.msg.me .bubble { background: var(--emerald); color: #fff; }
+.mention { color: var(--gold); font-weight: 500; }
+
+.composer {
+  display: flex;
+  gap: 8px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+}
+.composer input {
+  flex: 1;
+}
+.icon-btn {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  width: 38px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+/* ---------- Savings ---------- */
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.goal-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.goal-card h3 { font-size: 16px; margin: 0 0 4px; }
+.goal-card .sub { font-size: 12px; color: var(--ink-soft); margin-bottom: 14px; }
+.progress-track {
+  background: var(--bg);
+  border-radius: 20px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--emerald), var(--gold));
+}
+.goal-amounts {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.goal-card .add-btn {
+  margin-top: 14px;
+  width: 100%;
+  padding: 8px;
+  font-size: 12.5px;
+}
+.new-goal-card {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 13px;
+  min-height: 160px;
+}
+.new-goal-card:hover { border-color: var(--emerald); color: var(--emerald); }
+
+/* ---------- Crew ---------- */
+.crew-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+.crew-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  text-align: center;
+}
+.crew-card .real-name { color: var(--ink-soft); font-size: 12px; margin: 2px 0 12px; }
+.crew-card p.story { font-size: 12.5px; color: var(--ink-soft); text-align: left; margin-top: 12px; }
+
+/* ---------- Updates feed ---------- */
+#page-updates {
+  --u-maroon: #7A2035;
+  --u-maroon-dark: #5C1828;
+  --u-blue: #1F4E79;
+  --u-blue-light: #EAF1F8;
+}
+.post-composer {
+  display: flex;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--u-blue);
+  border-top: 3px solid var(--u-maroon);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.composer-body { flex: 1; }
+#post-text {
+  width: 100%;
+  border: none;
+  resize: none;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  color: var(--ink);
+  background: transparent;
+  padding: 6px 0;
+}
+#post-text:focus { outline: none; }
+.composer-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--u-blue-light);
+  padding-top: 10px;
+  margin-top: 6px;
+}
+#page-updates .icon-btn {
+  border-color: var(--u-blue);
+  color: var(--u-blue);
+}
+#page-updates .btn {
+  background: var(--u-maroon);
+}
+#page-updates .btn:hover { background: var(--u-maroon-dark); }
+.post-image-preview img {
+  max-width: 140px;
+  border-radius: 8px;
+  margin: 6px 0;
+  display: block;
+}
+
+.post-card {
+  background: #fff;
+  border: 1px solid var(--u-blue);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+.post-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+#page-updates .avatar { background: var(--u-blue-light); color: var(--u-blue); }
+.post-head .post-meta strong { font-size: 13.5px; display: block; color: var(--u-blue); }
+.post-head .post-meta span { font-size: 11.5px; color: var(--ink-soft); }
+.post-text { font-size: 13.5px; margin: 0 0 10px; white-space: pre-wrap; }
+.post-image {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  display: block;
+}
+.post-stats {
+  font-size: 11.5px;
+  color: var(--u-blue);
+  padding: 6px 0;
+  border-top: 1px solid var(--u-blue-light);
+  border-bottom: 1px solid var(--u-blue-light);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+.post-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.post-actions button {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 7px;
+  border-radius: 8px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--u-blue);
+  cursor: pointer;
+}
+.post-actions button:hover { background: var(--u-blue-light); }
+.post-actions button.liked { color: var(--u-maroon); }
+.comment-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.comment-row { display: flex; gap: 8px; }
+.comment-bubble {
+  background: var(--u-blue-light);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 12.5px;
+}
+.comment-bubble strong { font-size: 12px; display: block; color: var(--u-maroon); }
+.comment-input-row { display: flex; gap: 8px; }
+.comment-input-row input {
+  font-size: 12.5px;
+  padding: 8px 10px;
+  border-color: var(--u-blue);
+}
+#page-updates .small-btn { background: var(--u-maroon); }
+#page-updates .small-btn:hover { background: var(--u-maroon-dark); }
+
+/* ---------- Gallery ---------- */
+.gallery-section {
+  margin-bottom: 28px;
+}
+.gallery-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.gallery-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gallery-section-title h3 { margin: 0; font-size: 16px; }
+.gallery-section-title .sub { font-size: 12px; color: var(--ink-soft); }
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+.gallery-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+.gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-thumb .remove-btn {
+  position: absolute; top: 4px; right: 4px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: rgba(31,36,32,0.65);
+  color: #fff;
+  border: none;
+  font-size: 11px;
+  cursor: pointer;
+  line-height: 1;
+}
+.gallery-add {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1px dashed var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+  padding: 6px;
+}
+.gallery-add:hover { border-color: var(--emerald); color: var(--emerald); }
+.gallery-empty {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+/* ---------- Admin ---------- */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { color: var(--ink-soft); font-weight: 500; font-size: 12px; }
+.admin-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.pill {
+  background: var(--card);
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--emerald-dark);
+}
+.small-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  width: auto;
+  display: inline-block;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(31,36,32,0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 26px;
+  width: 100%;
+  max-width: 340px;
+}
+.modal h3 { margin-top: 0; }
+
+@media (max-width: 720px) {
+  .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; flex-direction: row; justify-content: space-around; padding: 10px; border-right: none; border-top: 1px solid var(--line); z-index: 20; }
+  .brand, .sidebar-footer { display: none; }
+  .nav-item span.label { display: none; }
+  .main { padding: 18px; padding-bottom: 90px; }
+  .msg { max-width: 85%; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ============ LANDING PAGE ============ -->
+<div id="landing-screen">
+  <div class="story-pattern">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="60" cy="60" r="46" fill="none" stroke="rgba(250,250,248,0.14)" stroke-width="1.5"/>
+      <circle cx="150" cy="45" r="30" fill="none" stroke="rgba(201,162,39,0.22)" stroke-width="1.5"/>
+      <circle cx="165" cy="150" r="52" fill="none" stroke="rgba(250,250,248,0.1)" stroke-width="1.5"/>
+      <circle cx="35" cy="150" r="24" fill="none" stroke="rgba(201,162,39,0.18)" stroke-width="1.5"/>
+    </svg>
+  </div>
+  <div class="landing-content">
+    <div class="mark lg" style="margin:0 auto 22px;"><span></span><span></span><span></span><span></span></div>
+    <h1>Big4</h1>
+    <p class="story-tagline" style="margin-left:auto; margin-right:auto;">Four names. One tribe. Built to be wealthy, built to stay close.</p>
+    <ul class="story-names landing-names">
+      <li><span>Jakom</span><em>Derro</em></li>
+      <li><span>Kwach</span><em>Selekta</em></li>
+      <li><span>Omin</span><em>Memo</em></li>
+      <li><span>Omwanda</span><em>Tobby</em></li>
+    </ul>
+    <div class="landing-actions">
+      <button class="btn" onclick="openAuth('login')">Sign in</button>
+      <button class="btn ghost light" onclick="openAuth('signup')">Sign up</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="auth-screen" style="display:none;">
+  <div class="auth-layout">
+    <div class="auth-story">
+      <div class="story-pattern">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="46" fill="none" stroke="rgba(250,250,248,0.14)" stroke-width="1.5"/>
+          <circle cx="150" cy="45" r="30" fill="none" stroke="rgba(201,162,39,0.22)" stroke-width="1.5"/>
+          <circle cx="165" cy="150" r="52" fill="none" stroke="rgba(250,250,248,0.1)" stroke-width="1.5"/>
+          <circle cx="35" cy="150" r="24" fill="none" stroke="rgba(201,162,39,0.18)" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="story-content">
+        <div class="mark lg"><span></span><span></span><span></span><span></span></div>
+        <h1>Big4</h1>
+        <p class="story-tagline">Four names. One tribe. Built to be wealthy, built to stay close.</p>
+        <ul class="story-names">
+          <li><span>Jakom</span><em>Derro</em></li>
+          <li><span>Kwach</span><em>Selekta</em></li>
+          <li><span>Omin</span><em>Memo</em></li>
+          <li><span>Omwanda</span><em>Tobby</em></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="auth-form-side">
+      <div class="auth-card">
+        <button class="link-btn" style="margin:0 0 18px; text-decoration:none;" onclick="backToLanding()">← Back</button>
+
+        <div id="login-view">
+          <h2 class="form-heading">Welcome back</h2>
+          <p class="sub">Enter the group.</p>
+          <div class="field">
+            <label>Who are you?</label>
+            <select id="login-username">
+              <option value="">Choose your name</option>
+              <option>Jakom</option>
+              <option>Kwach</option>
+              <option>Omin</option>
+              <option>Omwanda</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="login-password" placeholder="Enter password">
+          </div>
+          <button class="btn" onclick="handleLogin()">Enter Big4</button>
+          <button class="link-btn" onclick="showForgot()">Forgot password?</button>
+          <button class="link-btn" onclick="showSignup()">First time? Set up your account</button>
+        </div>
+
+        <div id="signup-view" style="display:none;">
+          <h2 class="form-heading">Join the crew</h2>
+          <p class="sub">Set your account up once.</p>
+          <div class="field">
+            <label>Choose your name</label>
+            <select id="signup-username">
+              <option value="">Select name</option>
+              <option>Jakom</option>
+              <option>Kwach</option>
+              <option>Omin</option>
+              <option>Omwanda</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Set a password</label>
+            <input type="password" id="signup-password" placeholder="Create password">
+          </div>
+          <button class="btn" onclick="handleSignup()">Create account</button>
+          <button class="link-btn" onclick="showLogin()">Back to login</button>
+        </div>
+
+        <div id="forgot-view" style="display:none;">
+          <h2 class="form-heading">Locked out?</h2>
+          <p class="sub" style="margin-top:-4px;">Ask Jakom (admin) to reset it for you from the admin panel — no one else can bypass this.</p>
+          <button class="btn ghost" onclick="showLogin()">Back to login</button>
+        </div>
+
+        <p id="auth-error" style="color:#B5453A; font-size:12.5px; margin-top:10px; display:none;"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app-shell">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="mark"><span></span><span></span><span></span><span></span></div>
+      <span class="name">Big4</span>
+    </div>
+    <div class="nav-item active" data-page="chat" onclick="goTo('chat')">💬 <span class="label">Chat</span></div>
+    <div class="nav-item" data-page="savings" onclick="goTo('savings')">🎯 <span class="label">Savings</span></div>
+    <div class="nav-item" data-page="crew" onclick="goTo('crew')">👥 <span class="label">The Crew</span></div>
+    <div class="nav-item" data-page="gallery" onclick="goTo('gallery')">🖼 <span class="label">Gallery</span></div>
+    <div class="nav-item" data-page="updates" onclick="goTo('updates')">📣 <span class="label">Updates</span></div>
+    <div class="nav-item" id="admin-nav" data-page="admin" onclick="goTo('admin')" style="display:none;">🛠 <span class="label">Admin</span></div>
+    <div class="sidebar-footer">
+      <span class="dot-online"></span>
+      <span id="current-user-label">—</span>
+    </div>
+    <button class="link-btn" style="margin:0; padding:0 6px;" onclick="logout()">Log out</button>
+  </div>
+
+  <div class="main">
+
+    <!-- CHAT PAGE -->
+    <div class="page active" id="page-chat">
+      <div class="topbar">
+        <div>
+          <h2>Group Chat</h2>
+          <p>Just the four of us — no secrets, no side chats.</p>
+        </div>
+      </div>
+      <div class="chat-wrap">
+        <div class="chat-members" id="chat-members"></div>
+        <div class="messages" id="messages"></div>
+        <div class="composer">
+          <button class="icon-btn" title="Attach" onclick="attachFile()">📎</button>
+          <button class="icon-btn" title="Emoji" onclick="insertEmoji()">😊</button>
+          <input type="text" id="msg-input" placeholder="Message the crew... (@name to mention)" onkeydown="if(event.key==='Enter') sendMessage()">
+          <button class="btn" style="width:auto; padding:9px 16px;" onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATES PAGE -->
+    <div class="page" id="page-updates">
+      <div class="topbar">
+        <div>
+          <h2>Updates</h2>
+          <p>Share something with the crew — they can like it and comment.</p>
+        </div>
+      </div>
+
+      <div class="post-composer">
+        <div class="avatar" id="composer-avatar">•</div>
+        <div class="composer-body">
+          <textarea id="post-text" placeholder="What's on your mind?" rows="2"></textarea>
+          <div class="composer-actions">
+            <div id="post-image-preview" class="post-image-preview"></div>
+            <div class="composer-actions-row">
+              <button class="icon-btn" title="Add photo" onclick="attachPostImage()">📷</button>
+              <button class="btn" style="width:auto; padding:8px 18px;" onclick="createPost()">Post</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="updates-feed"></div>
+    </div>
+
+    <!-- SAVINGS PAGE -->
+    <div class="page" id="page-savings">
+      <div class="topbar">
+        <div>
+          <h2>Savings Goals</h2>
+          <p>Set a target, a date, and watch the crew hit it together.</p>
+        </div>
+      </div>
+      <div class="goals-grid" id="goals-grid"></div>
+    </div>
+
+    <!-- CREW PAGE -->
+    <div class="page" id="page-crew">
+      <div class="topbar">
+        <div>
+          <h2>The Crew</h2>
+          <p>One tribe. Four names. Some stories worth remembering.</p>
+        </div>
+      </div>
+      <div class="crew-grid" id="crew-grid"></div>
+    </div>
+
+    <!-- GALLERY PAGE -->
+    <div class="page" id="page-gallery">
+      <div class="topbar">
+        <div>
+          <h2>Gallery</h2>
+          <p>Every member has their own corner — pictures worth keeping.</p>
+        </div>
+      </div>
+      <div id="gallery-sections"></div>
+    </div>
+
+    <!-- ADMIN PAGE -->
+    <div class="page" id="page-admin">
+      <div class="topbar">
+        <div>
+          <h2>Admin Panel</h2>
+          <p>Visible to Jakom only.</p>
+        </div>
+      </div>
+      <div class="admin-card">
+        <h3 style="margin-top:0; font-size:15px;">Members &amp; access</h3>
+        <table id="admin-users-table">
+          <thead><tr><th>Username</th><th>Status</th><th>Last seen</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="admin-card">
+        <h3 style="margin-top:0; font-size:15px;">All savings activity</h3>
+        <table id="admin-savings-table">
+          <thead><tr><th>Goal</th><th>Member</th><th>Amount</th><th>Date</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal: new goal -->
+<div class="modal-overlay" id="goal-modal">
+  <div class="modal">
+    <h3>New savings goal</h3>
+    <div class="field"><label>Title</label><input id="goal-title" placeholder="e.g. Mombasa Trip"></div>
+    <div class="field"><label>Target amount (KES)</label><input id="goal-amount" type="number" placeholder="50000"></div>
+    <div class="field"><label>Target date</label><input id="goal-target-date" type="date"></div>
+    <div class="field"><label>Travel / event date</label><input id="goal-travel-date" type="date"></div>
+    <button class="btn" onclick="createGoal()">Create goal</button>
+    <button class="link-btn" onclick="closeModal('goal-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- Modal: contribute -->
+<div class="modal-overlay" id="contribute-modal">
+  <div class="modal">
+    <h3>Add contribution</h3>
+    <div class="field"><label>Amount (KES)</label><input id="contribute-amount" type="number" placeholder="1000"></div>
+    <button class="btn" onclick="submitContribution()">Add</button>
+    <button class="link-btn" onclick="closeModal('contribute-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- Modal: admin reset password -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal">
+    <h3>Set new password</h3>
+    <p class="sub" id="reset-modal-name" style="margin-bottom:16px; text-align:left;"></p>
+    <div class="field"><label>New password</label><input id="reset-password" type="password"></div>
+    <button class="btn" onclick="submitReset()">Save new password</button>
+    <button class="link-btn" onclick="closeModal('reset-modal')">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ===== Big4 prototype logic (localStorage mock — will be swapped for Supabase) =====
+
+const MEMBERS = ["Jakom", "Kwach", "Omin", "Omwanda"];
+
+const CREW_INFO = {
+  Jakom:   { real: "Derrick", story: "Founder of the group and the one who always says \u201cwe're about to blow\u201d before every new idea." },
+  Kwach:   { real: "Selekta", story: "The DJ energy of the group — turns any hangout into an event." },
+  Omin:    { real: "Memo", story: "Quiet but calculating — the one with the plan nobody saw coming." },
+  Omwanda: { real: "Tobby", story: "The mediator. Somehow ends every argument in the group with a joke." },
+};
+
+function loadDB() {
+  let db = JSON.parse(localStorage.getItem("big4_db") || "null");
+  if (!db) {
+    db = {
+      users: {}, // username -> {password, lastSeen}
+      messages: [],
+      goals: [],
+      gallery: { Jakom: [], Kwach: [], Omin: [], Omwanda: [] },
+      posts: [],
+    };
+    localStorage.setItem("big4_db", JSON.stringify(db));
+  }
+  if (!db.gallery) db.gallery = { Jakom: [], Kwach: [], Omin: [], Omwanda: [] };
+  if (!db.posts) db.posts = [];
+  return db;
+}
+function saveDB(db) { localStorage.setItem("big4_db", JSON.stringify(db)); }
+
+let session = JSON.parse(sessionStorage.getItem("big4_session") || "null");
+
+function openAuth(view) {
+  document.getElementById("landing-screen").style.display = "none";
+  document.getElementById("auth-screen").style.display = "block";
+  if (view === "signup") showSignup(); else showLogin();
+}
+function backToLanding() {
+  document.getElementById("auth-screen").style.display = "none";
+  document.getElementById("landing-screen").style.display = "flex";
+}
+
+function showLogin() {
+  document.getElementById("login-view").style.display = "block";
+  document.getElementById("signup-view").style.display = "none";
+  document.getElementById("forgot-view").style.display = "none";
+}
+function showSignup() {
+  document.getElementById("login-view").style.display = "none";
+  document.getElementById("signup-view").style.display = "block";
+  document.getElementById("forgot-view").style.display = "none";
+}
+function showForgot() {
+  document.getElementById("login-view").style.display = "none";
+  document.getElementById("signup-view").style.display = "none";
+  document.getElementById("forgot-view").style.display = "block";
+}
+
+function authError(msg) {
+  const el = document.getElementById("auth-error");
+  el.textContent = msg;
+  el.style.display = "block";
+}
+
+function handleSignup() {
+  const username = document.getElementById("signup-username").value;
+  const password = document.getElementById("signup-password").value;
+  if (!username) return authError("Pick your name.");
+  if (!password || password.length < 4) return authError("Password must be at least 4 characters.");
+  const db = loadDB();
+  if (db.users[username]) return authError(`${username} already has an account — log in instead.`);
+  db.users[username] = { password, lastSeen: Date.now() };
+  saveDB(db);
+  loginAs(username);
+}
+
+function handleLogin() {
+  const username = document.getElementById("login-username").value;
+  const password = document.getElementById("login-password").value;
+  const db = loadDB();
+  if (!username) return authError("Choose your name.");
+  if (!db.users[username]) return authError("No account yet — set one up first.");
+  if (db.users[username].password !== password) return authError("Wrong password. Ask Jakom to reset it if needed.");
+  loginAs(username);
+}
+
+function loginAs(username) {
+  session = { username };
+  sessionStorage.setItem("big4_session", JSON.stringify(session));
+  const db = loadDB();
+  db.users[username].lastSeen = Date.now();
+  saveDB(db);
+  enterApp();
+}
+
+function logout() {
+  session = null;
+  sessionStorage.removeItem("big4_session");
+  document.getElementById("app-shell").classList.remove("active");
+  document.getElementById("auth-screen").style.display = "none";
+  document.getElementById("landing-screen").style.display = "flex";
+}
+
+function enterApp() {
+  document.getElementById("landing-screen").style.display = "none";
+  document.getElementById("auth-screen").style.display = "none";
+  document.getElementById("app-shell").classList.add("active");
+  document.getElementById("current-user-label").textContent = session.username;
+  document.getElementById("admin-nav").style.display = session.username === "Jakom" ? "flex" : "none";
+  document.getElementById("composer-avatar").textContent = session.username[0];
+  renderChatMembers();
+  renderMessages();
+  renderGoals();
+  renderCrew();
+  renderGallery();
+  renderUpdates();
+  renderAdmin();
+}
+
+function goTo(pageName) {
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.page === pageName));
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById("page-" + pageName).classList.add("active");
+  if (pageName === "admin") renderAdmin();
+}
+
+// ---------- Chat ----------
+function renderChatMembers() {
+  const db = loadDB();
+  const wrap = document.getElementById("chat-members");
+  wrap.innerHTML = MEMBERS.map(m => {
+    const online = db.users[m] && (Date.now() - db.users[m].lastSeen < 60000);
+    return `<div class="member-chip">
+      <div class="avatar">${m[0]}<span class="status ${online ? '' : 'off'}"></span></div>
+      ${m}
+    </div>`;
+  }).join("");
+}
+
+function renderMessages() {
+  const db = loadDB();
+  const wrap = document.getElementById("messages");
+  if (db.messages.length === 0) {
+    wrap.innerHTML = `<p style="color:var(--ink-soft); font-size:13px; text-align:center; margin-top:40px;">No messages yet — say hi to the crew 👋</p>`;
+    return;
+  }
+  wrap.innerHTML = db.messages.map(m => {
+    const mine = m.from === session.username;
+    const text = m.text.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+    return `<div class="msg ${mine ? 'me' : ''}">
+      <div class="avatar">${m.from[0]}</div>
+      <div>
+        <div class="meta">${mine ? 'You' : m.from} · ${new Date(m.at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+        <div class="bubble">${text}</div>
+      </div>
+    </div>`;
+  }).join("");
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function sendMessage() {
+  const input = document.getElementById("msg-input");
+  const text = input.value.trim();
+  if (!text) return;
+  const db = loadDB();
+  db.messages.push({ from: session.username, text, at: Date.now() });
+  saveDB(db);
+  input.value = "";
+  renderMessages();
+  maybeNotify(session.username, text);
+}
+
+function insertEmoji() {
+  const input = document.getElementById("msg-input");
+  const picks = ["😂","🔥","💰","✈️","🙌","😅","👏","💯"];
+  input.value += picks[Math.floor(Math.random() * picks.length)];
+  input.focus();
+}
+
+function attachFile() {
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = "image/*";
+  inp.onchange = () => {
+    if (inp.files[0]) {
+      const db = loadDB();
+      db.messages.push({ from: session.username, text: `📎 sent a file: ${inp.files[0].name}`, at: Date.now() });
+      saveDB(db);
+      renderMessages();
+    }
+  };
+  inp.click();
+}
+
+function maybeNotify(from, text) {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") {
+    new Notification(`Big4 · ${from}`, { body: text });
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission();
+  }
+}
+
+// ---------- Savings ----------
+function renderGoals() {
+  const db = loadDB();
+  const grid = document.getElementById("goals-grid");
+  let html = db.goals.map((g, i) => {
+    const total = g.contributions.reduce((s, c) => s + c.amount, 0);
+    const pct = Math.min(100, Math.round((total / g.amount) * 100));
+    return `<div class="goal-card">
+      <h3>${g.title}</h3>
+      <p class="sub">Target: ${new Date(g.targetDate).toLocaleDateString()} · Travel: ${new Date(g.travelDate).toLocaleDateString()} · by ${g.creator}</p>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="goal-amounts"><span>KES ${total.toLocaleString()} saved</span><span>${pct}% of ${Number(g.amount).toLocaleString()}</span></div>
+      <button class="btn add-btn" onclick="openContribute(${i})">Add contribution</button>
+    </div>`;
+  }).join("");
+  html += `<div class="new-goal-card" onclick="openModal('goal-modal')">+ Create a new goal</div>`;
+  grid.innerHTML = html;
+}
+
+function createGoal() {
+  const title = document.getElementById("goal-title").value.trim();
+  const amount = parseFloat(document.getElementById("goal-amount").value);
+  const targetDate = document.getElementById("goal-target-date").value;
+  const travelDate = document.getElementById("goal-travel-date").value;
+  if (!title || !amount || !targetDate || !travelDate) return alert("Fill in all fields.");
+  const db = loadDB();
+  db.goals.push({ title, amount, targetDate, travelDate, creator: session.username, contributions: [] });
+  saveDB(db);
+  closeModal("goal-modal");
+  renderGoals();
+  renderAdmin();
+}
+
+let activeGoalIndex = null;
+function openContribute(i) { activeGoalIndex = i; openModal("contribute-modal"); }
+function submitContribution() {
+  const amount = parseFloat(document.getElementById("contribute-amount").value);
+  if (!amount) return;
+  const db = loadDB();
+  db.goals[activeGoalIndex].contributions.push({ member: session.username, amount, at: Date.now() });
+  saveDB(db);
+  document.getElementById("contribute-amount").value = "";
+  closeModal("contribute-modal");
+  renderGoals();
+  renderAdmin();
+}
+
+// ---------- Crew ----------
+function renderCrew() {
+  const grid = document.getElementById("crew-grid");
+  grid.innerHTML = MEMBERS.map(m => {
+    const info = CREW_INFO[m];
+    return `<div class="crew-card">
+      <div class="avatar big" style="margin:0 auto;">${m[0]}</div>
+      <h3 style="margin:12px 0 0;">${m}</h3>
+      <p class="real-name">a.k.a. ${info.real}</p>
+      <p class="story">${info.story}</p>
+    </div>`;
+  }).join("");
+}
+
+// ---------- Updates feed ----------
+let pendingPostImage = null;
+
+function attachPostImage() {
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = "image/*";
+  inp.onchange = () => {
+    if (!inp.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      pendingPostImage = e.target.result;
+      document.getElementById("post-image-preview").innerHTML = `<img src="${pendingPostImage}">`;
+    };
+    reader.readAsDataURL(inp.files[0]);
+  };
+  inp.click();
+}
+
+function createPost() {
+  const text = document.getElementById("post-text").value.trim();
+  if (!text && !pendingPostImage) return;
+  const db = loadDB();
+  db.posts.unshift({
+    id: Date.now(),
+    author: session.username,
+    text,
+    image: pendingPostImage,
+    at: Date.now(),
+    likes: [],
+    comments: [],
+  });
+  saveDB(db);
+  document.getElementById("post-text").value = "";
+  document.getElementById("post-image-preview").innerHTML = "";
+  pendingPostImage = null;
+  renderUpdates();
+}
+
+function renderUpdates() {
+  const db = loadDB();
+  const feed = document.getElementById("updates-feed");
+  if (!db.posts.length) {
+    feed.innerHTML = `<p style="color:var(--ink-soft); font-size:13px; text-align:center; margin-top:30px;">No updates yet — be the first to post something.</p>`;
+    return;
+  }
+  feed.innerHTML = db.posts.map(p => {
+    const liked = p.likes.includes(session.username);
+    const commentsHtml = p.comments.map(c => `
+      <div class="comment-row">
+        <div class="avatar" style="width:22px;height:22px;font-size:10px;">${c.author[0]}</div>
+        <div class="comment-bubble"><strong>${c.author}</strong>${c.text}</div>
+      </div>`).join("");
+    return `<div class="post-card">
+      <div class="post-head">
+        <div class="avatar">${p.author[0]}</div>
+        <div class="post-meta">
+          <strong>${p.author}</strong>
+          <span>${new Date(p.at).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
+        </div>
+      </div>
+      ${p.text ? `<p class="post-text">${p.text}</p>` : ""}
+      ${p.image ? `<img class="post-image" src="${p.image}">` : ""}
+      <div class="post-stats">
+        <span>${p.likes.length ? "❤️ " + p.likes.length : ""}</span>
+        <span>${p.comments.length ? p.comments.length + " comment" + (p.comments.length === 1 ? "" : "s") : ""}</span>
+      </div>
+      <div class="post-actions">
+        <button class="${liked ? 'liked' : ''}" onclick="toggleLike(${p.id})">${liked ? "❤️ Liked" : "🤍 Like"}</button>
+        <button onclick="focusComment(${p.id})">💬 Comment</button>
+      </div>
+      <div class="comment-list">${commentsHtml}</div>
+      <div class="comment-input-row">
+        <input type="text" id="comment-input-${p.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter') addComment(${p.id})">
+        <button class="btn small-btn" onclick="addComment(${p.id})">Send</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function toggleLike(postId) {
+  const db = loadDB();
+  const post = db.posts.find(p => p.id === postId);
+  const i = post.likes.indexOf(session.username);
+  if (i === -1) post.likes.push(session.username);
+  else post.likes.splice(i, 1);
+  saveDB(db);
+  renderUpdates();
+}
+
+function focusComment(postId) {
+  document.getElementById(`comment-input-${postId}`).focus();
+}
+
+function addComment(postId) {
+  const input = document.getElementById(`comment-input-${postId}`);
+  const text = input.value.trim();
+  if (!text) return;
+  const db = loadDB();
+  const post = db.posts.find(p => p.id === postId);
+  post.comments.push({ author: session.username, text, at: Date.now() });
+  saveDB(db);
+  renderUpdates();
+}
+
+// ---------- Gallery ----------
+function renderGallery() {
+  const db = loadDB();
+  const wrap = document.getElementById("gallery-sections");
+  wrap.innerHTML = MEMBERS.map(m => {
+    const photos = db.gallery[m] || [];
+    const canAdd = session.username === m;
+    const canDeleteAny = session.username === "Jakom";
+    const thumbs = photos.map((src, i) => `
+      <div class="gallery-thumb">
+        <img src="${src}">
+        ${(canAdd || canDeleteAny) ? `<button class="remove-btn" onclick="removePhoto('${m}', ${i})">✕</button>` : ""}
+      </div>`).join("");
+    const addTile = canAdd ? `<div class="gallery-add" onclick="uploadPhoto('${m}')">+ Add photo</div>` : "";
+    return `<div class="gallery-section">
+      <div class="gallery-section-head">
+        <div class="gallery-section-title">
+          <div class="avatar">${m[0]}</div>
+          <div>
+            <h3>${m}'s photos</h3>
+            <div class="sub">${photos.length} photo${photos.length === 1 ? "" : "s"}</div>
+          </div>
+        </div>
+      </div>
+      <div class="gallery-grid">
+        ${thumbs}
+        ${addTile}
+        ${!photos.length && !canAdd ? '<span class="gallery-empty">No photos yet.</span>' : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function uploadPhoto(member) {
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = "image/*";
+  inp.multiple = true;
+  inp.onchange = () => {
+    const db = loadDB();
+    const files = Array.from(inp.files);
+    let remaining = files.length;
+    if (!remaining) return;
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        db.gallery[member].push(e.target.result);
+        remaining -= 1;
+        if (remaining === 0) {
+          saveDB(db);
+          renderGallery();
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+  inp.click();
+}
+
+function removePhoto(member, index) {
+  const db = loadDB();
+  db.gallery[member].splice(index, 1);
+  saveDB(db);
+  renderGallery();
+}
+
+// ---------- Admin ----------
+function renderAdmin() {
+  if (session.username !== "Jakom") return;
+  const db = loadDB();
+  const userBody = document.querySelector("#admin-users-table tbody");
+  userBody.innerHTML = MEMBERS.map(m => {
+    const u = db.users[m];
+    const online = u && (Date.now() - u.lastSeen < 60000);
+    return `<tr>
+      <td>${m}</td>
+      <td><span class="pill">${u ? (online ? "Online" : "Registered") : "Not signed up"}</span></td>
+      <td>${u ? new Date(u.lastSeen).toLocaleString() : "—"}</td>
+      <td>${u ? `<button class="btn small-btn" onclick="openReset('${m}')">Reset password</button>` : ""}</td>
+    </tr>`;
+  }).join("");
+
+  const savingsBody = document.querySelector("#admin-savings-table tbody");
+  let rows = [];
+  db.goals.forEach(g => g.contributions.forEach(c => rows.push({ goal: g.title, ...c })));
+  rows.sort((a, b) => b.at - a.at);
+  savingsBody.innerHTML = rows.length ? rows.map(r => `<tr>
+    <td>${r.goal}</td><td>${r.member}</td><td>KES ${r.amount.toLocaleString()}</td><td>${new Date(r.at).toLocaleDateString()}</td>
+  </tr>`).join("") : `<tr><td colspan="4" style="color:var(--ink-soft);">No contributions yet.</td></tr>`;
+}
+
+let resetTarget = null;
+function openReset(username) {
+  resetTarget = username;
+  document.getElementById("reset-modal-name").textContent = `Setting a new password for ${username}.`;
+  openModal("reset-modal");
+}
+function submitReset() {
+  const pw = document.getElementById("reset-password").value;
+  if (!pw || pw.length < 4) return alert("Password must be at least 4 characters.");
+  const db = loadDB();
+  db.users[resetTarget].password = pw;
+  saveDB(db);
+  document.getElementById("reset-password").value = "";
+  closeModal("reset-modal");
+  renderAdmin();
+}
+
+// ---------- Modals ----------
+function openModal(id) { document.getElementById(id).classList.add("active"); }
+function closeModal(id) { document.getElementById(id).classList.remove("active"); }
+
+// ---------- Boot ----------
+if (session && session.username) enterApp();
+
+</script>
+</body>
+</html>
