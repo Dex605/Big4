@@ -894,10 +894,26 @@ function loadDB() {
   return dbCache;
 }
 
-// Updates the local cache immediately (optimistic UI), then pushes to Supabase in the background
+// Updates the local cache immediately (optimistic UI), then pushes to Supabase in the background.
+// Saves are serialized through a queue so two quick actions in a row can never finish
+// out of order and overwrite each other with stale data.
 function saveDB(db) {
   dbCache = db;
-  pushState();
+  requestPush();
+}
+
+let pushInFlight = false;
+let pushQueued = false;
+function requestPush() {
+  if (pushInFlight) { pushQueued = true; return; }
+  pushInFlight = true;
+  pushState().finally(() => {
+    pushInFlight = false;
+    if (pushQueued) {
+      pushQueued = false;
+      requestPush();
+    }
+  });
 }
 
 function showSyncBanner(msg) {
@@ -967,7 +983,7 @@ async function pushState() {
     refreshCurrentViews();
   } catch (e) {
     showSyncBanner("⚠ Sync failed: " + errorDetail(e) + " — retrying in the background.");
-    setTimeout(() => pushState(), 5000);
+    setTimeout(() => requestPush(), 5000);
   }
 }
 
