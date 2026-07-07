@@ -50,6 +50,16 @@ h1, h2, h3, .display {
 }
 
 /* ---------- Four-dot signature mark ---------- */
+.online-toast {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-20px);
+  background: var(--ink); color: #fff; padding: 9px 16px; border-radius: 20px;
+  font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 200; pointer-events: none;
+}
+.online-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .mark {
   display: inline-grid;
   grid-template-columns: repeat(2, 1fr);
@@ -978,6 +988,7 @@ async function pushState() {
       dbCache = merged;
       const { error } = await supabaseClient.from("app_state").upsert({ id: 1, data: dbCache, updated_at: new Date().toISOString() });
       if (error) throw error;
+      saveLocalBackup(dbCache);
     }), 8000);
     hideSyncBanner();
     refreshCurrentViews();
@@ -987,6 +998,25 @@ async function pushState() {
   }
 }
 
+async function retrySync() {
+  try {
+    const { data, error } = await supabaseClient.from("app_state").select("data").eq("id", 1).single();
+    if (error) throw error;
+    if (data && data.data) {
+      // Merge fresh remote data with whatever we have locally, so nothing done
+      // offline in the meantime is lost, then adopt it as the current view.
+      dbCache = mergeStates(data.data, dbCache);
+      saveLocalBackup(dbCache);
+      hideSyncBanner();
+      refreshCurrentViews();
+      return;
+    }
+  } catch (e) {
+    // still unreachable — try again shortly
+  }
+  setTimeout(() => retrySync(), 6000);
+}
+
 function withTimeout(promise, ms) {
   return Promise.race([
     promise,
@@ -994,20 +1024,39 @@ function withTimeout(promise, ms) {
   ]);
 }
 
-async function initSync() {
+function saveLocalBackup(state) {
   try {
-    const { data, error } = await withTimeout(withRetry(() => supabaseClient.from("app_state").select("data").eq("id", 1).single()), 8000);
+    localStorage.setItem("big4_backup", JSON.stringify({ data: state, savedAt: Date.now() }));
+  } catch (e) { /* storage full or unavailable — safe to ignore */ }
+}
+function loadLocalBackup() {
+  try {
+    const raw = localStorage.getItem("big4_backup");
+    if (!raw) return null;
+    return JSON.parse(raw).data;
+  } catch (e) { return null; }
+}
+
+async function initSync() {
+  const backup = loadLocalBackup();
+  if (backup) dbCache = ensureDefaults(backup); // show last-known data immediately, never a blank screen
+  try {
+    const { data, error } = await withTimeout(withRetry(() => supabaseClient.from("app_state").select("data").eq("id", 1).single(), 5), 25000);
     if (error) throw error;
     if (data && data.data) {
       dbCache = ensureDefaults(data.data);
-    } else {
+      saveLocalBackup(dbCache);
+    } else if (!backup) {
       dbCache = defaultState();
       await supabaseClient.from("app_state").upsert({ id: 1, data: dbCache });
     }
     hideSyncBanner();
   } catch (e) {
-    dbCache = defaultState();
-    showSyncBanner("⚠ Couldn't load shared data: " + errorDetail(e) + " — using this device only for now.");
+    // Fetch failed — keep showing the local backup (or empty state only if we've
+    // truly never loaded anything before) and keep trying quietly in the background.
+    if (!backup) dbCache = defaultState();
+    showSyncBanner("⚠ Couldn't reach the shared database: " + errorDetail(e) + " — showing your last saved view.");
+    setTimeout(() => retrySync(), 4000);
   }
   appReady = true;
   setAuthButtonsLoading(false);
@@ -1027,8 +1076,49 @@ function subscribeRealtime() {
     .subscribe();
 }
 
+let seenMessageIds = null;
+let knownOnlineStatus = {};
+
+function checkForNewMessages(db) {
+  if (seenMessageIds === null) {
+    seenMessageIds = new Set(db.messages.map(m => m.id));
+    return;
+  }
+  db.messages.forEach(m => {
+    if (!seenMessageIds.has(m.id)) {
+      seenMessageIds.add(m.id);
+      if (m.from !== session.username) {
+        maybeNotify(m.from, m.type === "image" ? "📷 sent a photo" : m.text);
+      }
+    }
+  });
+}
+
+function checkPresenceChanges(db) {
+  MEMBERS.forEach(m => {
+    const online = !!(db.users[m] && (Date.now() - db.users[m].lastSeen < 60000));
+    if (knownOnlineStatus[m] === undefined) { knownOnlineStatus[m] = online; return; }
+    if (!knownOnlineStatus[m] && online && m !== session.username) {
+      showOnlineToast(m);
+    }
+    knownOnlineStatus[m] = online;
+  });
+}
+
+function showOnlineToast(member) {
+  const el = document.createElement("div");
+  el.className = "online-toast";
+  el.innerHTML = `<span class="dot-online"></span> ${member} is online`;
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add("show"), 10);
+  setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.remove(), 400); }, 3200);
+}
+
 function refreshCurrentViews() {
   if (!session || !document.getElementById("app-shell").classList.contains("active")) return;
+  const db = loadDB();
+  checkForNewMessages(db);
+  checkPresenceChanges(db);
   renderChatMembers();
   renderMessages();
   renderGoals();
@@ -1222,9 +1312,30 @@ function enterApp() {
   showGalleryIndex(true);
   renderUpdates();
   renderAdmin();
+  checkForNewMessages(loadDB());
+  checkPresenceChanges(loadDB());
   let lastPage = localStorage.getItem("big4_last_page") || "updates";
   if (lastPage === "admin" && session.username !== "Jakom") lastPage = "chat";
   goTo(lastPage);
+  startPresenceHeartbeat();
+}
+
+let presenceInterval = null;
+function startPresenceHeartbeat() {
+  if (presenceInterval) return;
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+  markPresent();
+  presenceInterval = setInterval(markPresent, 30000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) markPresent(); });
+}
+function markPresent() {
+  if (!session) return;
+  const db = loadDB();
+  if (!db.users[session.username]) return;
+  db.users[session.username].lastSeen = Date.now();
+  saveDB(db);
 }
 
 function toggleMobileMenu() {
@@ -1329,7 +1440,6 @@ function sendMessage() {
   input.value = "";
   cancelReply();
   renderMessages();
-  maybeNotify(session.username, text);
 }
 
 function startReply(msgId) {
