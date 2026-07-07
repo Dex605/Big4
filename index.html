@@ -187,6 +187,8 @@ select:focus, input:focus { outline: 2px solid var(--cobalt); outline-offset: 1p
   cursor: pointer; transition: background 0.15s ease;
 }
 .btn:hover { background: var(--ink-2); }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.btn:disabled:hover { background: var(--ink); }
 .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
 .link-btn { background: none; border: none; color: var(--muted); font-size: 12.5px; cursor: pointer; margin-top: 14px; text-decoration: underline; font-family: 'Inter', sans-serif; }
 
@@ -591,7 +593,7 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
               <button type="button" class="toggle-pw" onclick="togglePassword('login-password', this)">Show</button>
             </div>
           </div>
-          <button class="btn" onclick="handleLogin()">Enter Big4</button>
+          <button class="btn" id="login-submit-btn" onclick="handleLogin()">Enter Big4</button>
           <button class="link-btn" onclick="showForgot()">Forgot password?</button>
           <button class="link-btn" onclick="showSignup()">First time? Set up your account</button>
         </div>
@@ -623,7 +625,7 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
               <button type="button" class="toggle-pw" onclick="togglePassword('signup-password-confirm', this)">Show</button>
             </div>
           </div>
-          <button class="btn" onclick="handleSignup()">Create account</button>
+          <button class="btn" id="signup-submit-btn" onclick="handleSignup()">Create account</button>
           <button class="link-btn" onclick="showLogin()">Back to login</button>
         </div>
 
@@ -969,6 +971,7 @@ async function initSync() {
     showSyncBanner("⚠ Couldn't load shared data: " + errorDetail(e) + " — using this device only for now.");
   }
   appReady = true;
+  setAuthButtonsLoading(false);
   subscribeRealtime();
   if (session && session.username) enterApp();
 }
@@ -1077,6 +1080,14 @@ function authError(msg) {
   el.textContent = msg;
   el.style.display = "block";
 }
+
+function setAuthButtonsLoading(loading) {
+  const loginBtn = document.getElementById("login-submit-btn");
+  const signupBtn = document.getElementById("signup-submit-btn");
+  if (loginBtn) { loginBtn.disabled = loading; loginBtn.textContent = loading ? "Connecting…" : "Enter Big4"; }
+  if (signupBtn) { signupBtn.disabled = loading; signupBtn.textContent = loading ? "Connecting…" : "Create account"; }
+}
+setAuthButtonsLoading(true);
 
 function handleSignup() {
   if (!appReady) return authError("Still connecting — try again in a second.");
