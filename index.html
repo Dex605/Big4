@@ -850,6 +850,7 @@ function defaultState() {
     gallery: { Jakom: [], Kwach: [], Omin: [], Omwanda: [] },
     posts: [],
     avatars: { Jakom: null, Kwach: null, Omin: null, Omwanda: null },
+    deletedIds: { messages: [], posts: [], goals: [] },
   };
 }
 
@@ -860,6 +861,10 @@ function ensureDefaults(db) {
   if (!db.messages) db.messages = [];
   if (!db.goals) db.goals = [];
   if (!db.users) db.users = {};
+  if (!db.deletedIds) db.deletedIds = { messages: [], posts: [], goals: [] };
+  if (!db.deletedIds.messages) db.deletedIds.messages = [];
+  if (!db.deletedIds.posts) db.deletedIds.posts = [];
+  if (!db.deletedIds.goals) db.deletedIds.goals = [];
   db.posts.forEach(p => {
     if (p.edited === undefined) p.edited = false;
     p.comments.forEach(c => { if (!c.reactions) c.reactions = []; if (c.edited === undefined) c.edited = false; });
@@ -878,25 +883,6 @@ function mergeById(remoteArr, localArr) {
   remoteArr.forEach(item => map.set(item.id, item));
   localArr.forEach(item => map.set(item.id, item)); // local edits win for items this device touched
   return Array.from(map.values());
-}
-
-function mergeStates(remote, local) {
-  remote = remote || {};
-  local = local || {};
-  const merged = {
-    users: Object.assign({}, remote.users || {}, local.users || {}),
-    avatars: Object.assign({}, remote.avatars || {}, local.avatars || {}),
-    gallery: {},
-    messages: mergeById(remote.messages, local.messages),
-    posts: mergeById(remote.posts, local.posts),
-    goals: mergeById(remote.goals, local.goals),
-  };
-  MEMBERS.forEach(m => {
-    const r = (remote.gallery && remote.gallery[m]) || [];
-    const l = (local.gallery && local.gallery[m]) || [];
-    merged.gallery[m] = Array.from(new Set([...r, ...l]));
-  });
-  return ensureDefaults(merged);
 }
 
 // Synchronous accessor — reads from the in-memory cache kept in sync with Supabase
@@ -933,6 +919,35 @@ async function withRetry(fn, attempts) {
     }
   }
   throw lastErr;
+}
+
+function mergeIdSets(remote, local) {
+  return Array.from(new Set([...(remote || []), ...(local || [])]));
+}
+
+function mergeStates(remote, local) {
+  remote = remote || {};
+  local = local || {};
+  const deletedIds = {
+    messages: mergeIdSets(remote.deletedIds && remote.deletedIds.messages, local.deletedIds && local.deletedIds.messages),
+    posts: mergeIdSets(remote.deletedIds && remote.deletedIds.posts, local.deletedIds && local.deletedIds.posts),
+    goals: mergeIdSets(remote.deletedIds && remote.deletedIds.goals, local.deletedIds && local.deletedIds.goals),
+  };
+  const merged = {
+    users: Object.assign({}, remote.users || {}, local.users || {}),
+    avatars: Object.assign({}, remote.avatars || {}, local.avatars || {}),
+    gallery: {},
+    messages: mergeById(remote.messages, local.messages).filter(m => !deletedIds.messages.includes(m.id)),
+    posts: mergeById(remote.posts, local.posts).filter(p => !deletedIds.posts.includes(p.id)),
+    goals: mergeById(remote.goals, local.goals).filter(g => !deletedIds.goals.includes(g.id)),
+    deletedIds,
+  };
+  MEMBERS.forEach(m => {
+    const r = (remote.gallery && remote.gallery[m]) || [];
+    const l = (local.gallery && local.gallery[m]) || [];
+    merged.gallery[m] = Array.from(new Set([...r, ...l]));
+  });
+  return ensureDefaults(merged);
 }
 
 async function pushState() {
@@ -1303,6 +1318,7 @@ function saveMessageEdit(msgId) {
 function deleteMessage(msgId) {
   const db = loadDB();
   db.messages = db.messages.filter(x => x.id !== msgId);
+  db.deletedIds.messages.push(msgId);
   saveDB(db);
   renderMessages();
 }
@@ -1599,6 +1615,7 @@ function deletePost(postId) {
   if (!confirm("Delete this post?")) return;
   const db = loadDB();
   db.posts = db.posts.filter(p => p.id !== postId);
+  db.deletedIds.posts.push(postId);
   saveDB(db);
   renderUpdates();
 }
