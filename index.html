@@ -481,13 +481,33 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
 .modal { background: var(--card); border-radius: var(--radius); padding: 26px; width: 100%; max-width: 340px; }
 .modal h3 { margin-top: 0; }
 
+.hamburger-btn {
+  display: none;
+  position: fixed; top: 14px; left: 14px; z-index: 60;
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--ink); color: var(--paper); border: 1px solid rgba(237,240,233,0.2);
+  font-size: 18px; cursor: pointer; align-items: center; justify-content: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+}
+.mobile-backdrop {
+  display: none;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 45;
+}
+.mobile-backdrop.active { display: block; }
+
 @media (max-width: 720px) {
-  .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; flex-direction: row; justify-content: space-around; padding: 10px; z-index: 20; }
-  .brand, .sidebar-footer { display: none; }
-  .nav-item { border-left: none; border-top: 3px solid transparent; }
-  .nav-item.active { border-left: none; border-top: 3px solid var(--amber); }
-  .nav-item span.label { display: none; }
-  .main { padding: 18px; padding-bottom: 90px; }
+  .hamburger-btn { display: flex; }
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 240px;
+    flex-direction: column; justify-content: flex-start; z-index: 50;
+    transform: translateX(-100%); transition: transform 0.25s ease;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5);
+  }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .brand { display: flex; margin-top: 34px; }
+  .sidebar-footer { display: flex; }
+  .nav-item span.label { display: inline; }
+  .main { padding: 18px; padding-top: 70px; }
   .msg { max-width: 85%; }
 }
 
@@ -620,9 +640,10 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
 </div>
 
 <!-- ============ APP SHELL ============ -->
-<div id="sync-banner" style="display:none;"></div>
 <div id="app-shell">
-  <div class="sidebar">
+  <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()">☰</button>
+  <div class="mobile-backdrop" id="mobile-backdrop" onclick="closeMobileMenu()"></div>
+  <div class="sidebar" id="sidebar">
     <div class="brand">
       <div class="mark"><span></span><span></span><span></span><span></span></div>
       <span class="name">Big4</span>
@@ -842,7 +863,38 @@ function ensureDefaults(db) {
     p.comments.forEach(c => { if (!c.reactions) c.reactions = []; if (c.edited === undefined) c.edited = false; });
   });
   db.messages.forEach(m => { if (!m.id) m.id = Math.floor(Math.random() * 1e9) + m.at; if (m.edited === undefined) m.edited = false; });
+  db.goals.forEach((g, i) => { if (!g.id) g.id = Math.floor(Math.random() * 1e9) + i; });
   return db;
+}
+
+// Merges a remote snapshot with local changes so concurrent writes from different
+// devices don't silently erase each other (e.g. two people signing up at once).
+function mergeById(remoteArr, localArr) {
+  remoteArr = remoteArr || [];
+  localArr = localArr || [];
+  const map = new Map();
+  remoteArr.forEach(item => map.set(item.id, item));
+  localArr.forEach(item => map.set(item.id, item)); // local edits win for items this device touched
+  return Array.from(map.values());
+}
+
+function mergeStates(remote, local) {
+  remote = remote || {};
+  local = local || {};
+  const merged = {
+    users: Object.assign({}, remote.users || {}, local.users || {}),
+    avatars: Object.assign({}, remote.avatars || {}, local.avatars || {}),
+    gallery: {},
+    messages: mergeById(remote.messages, local.messages),
+    posts: mergeById(remote.posts, local.posts),
+    goals: mergeById(remote.goals, local.goals),
+  };
+  MEMBERS.forEach(m => {
+    const r = (remote.gallery && remote.gallery[m]) || [];
+    const l = (local.gallery && local.gallery[m]) || [];
+    merged.gallery[m] = Array.from(new Set([...r, ...l]));
+  });
+  return ensureDefaults(merged);
 }
 
 // Synchronous accessor — reads from the in-memory cache kept in sync with Supabase
@@ -858,28 +910,51 @@ function saveDB(db) {
 }
 
 function showSyncBanner(msg) {
-  const b = document.getElementById("sync-banner");
-  b.textContent = msg;
-  b.style.display = "block";
+  console.warn(msg);
 }
-function hideSyncBanner() {
-  document.getElementById("sync-banner").style.display = "none";
+function hideSyncBanner() {}
+
+function errorDetail(e) {
+  if (!e) return "unknown error";
+  return e.message || e.error_description || e.details || JSON.stringify(e);
+}
+
+async function withRetry(fn, attempts) {
+  attempts = attempts || 2;
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (i < attempts - 1) await new Promise(r => setTimeout(r, 600));
+    }
+  }
+  throw lastErr;
 }
 
 async function pushState() {
   try {
-    const { error } = await supabaseClient.from("app_state").upsert({ id: 1, data: dbCache, updated_at: new Date().toISOString() });
-    if (error) throw error;
+    await withRetry(async () => {
+      const { data: remoteRow, error: fetchErr } = await supabaseClient.from("app_state").select("data").eq("id", 1).single();
+      if (fetchErr) throw fetchErr;
+      const merged = mergeStates(remoteRow ? remoteRow.data : null, dbCache);
+      dbCache = merged;
+      const { error } = await supabaseClient.from("app_state").upsert({ id: 1, data: dbCache, updated_at: new Date().toISOString() });
+      if (error) throw error;
+    });
     hideSyncBanner();
+    refreshCurrentViews();
   } catch (e) {
     console.error("Sync error:", e);
-    showSyncBanner("⚠ Not syncing to the shared database — changes are only saved on this device. Check the Supabase setup (table 'app_state' must exist).");
+    showSyncBanner("⚠ Sync failed: " + errorDetail(e) + " — retrying in the background.");
+    setTimeout(() => pushState(), 5000);
   }
 }
 
 async function initSync() {
   try {
-    const { data, error } = await supabaseClient.from("app_state").select("data").eq("id", 1).single();
+    const { data, error } = await withRetry(() => supabaseClient.from("app_state").select("data").eq("id", 1).single());
     if (error) throw error;
     if (data && data.data) {
       dbCache = ensureDefaults(data.data);
@@ -891,7 +966,7 @@ async function initSync() {
   } catch (e) {
     console.error("Initial load failed:", e);
     dbCache = defaultState();
-    showSyncBanner("⚠ Couldn't connect to the shared database — using this device only for now. Check the Supabase setup (run supabase_setup.sql).");
+    showSyncBanner("⚠ Couldn't load shared data: " + errorDetail(e) + " — using this device only for now.");
   }
   appReady = true;
   subscribeRealtime();
@@ -916,7 +991,7 @@ function refreshCurrentViews() {
   renderMessages();
   renderGoals();
   renderCrew();
-  if (currentGalleryMember) renderGalleryDetail(); else showGalleryIndex();
+  if (currentGalleryMember) renderGalleryDetail(); else showGalleryIndex(true);
   renderUpdates();
   renderAdmin();
 }
@@ -1058,7 +1133,7 @@ function enterApp() {
   renderMessages();
   renderGoals();
   renderCrew();
-  showGalleryIndex();
+  showGalleryIndex(true);
   renderUpdates();
   renderAdmin();
   let lastPage = localStorage.getItem("big4_last_page") || "updates";
@@ -1066,14 +1141,44 @@ function enterApp() {
   goTo(lastPage);
 }
 
-function goTo(pageName) {
+function toggleMobileMenu() {
+  document.getElementById("sidebar").classList.toggle("mobile-open");
+  document.getElementById("mobile-backdrop").classList.toggle("active");
+}
+function closeMobileMenu() {
+  document.getElementById("sidebar").classList.remove("mobile-open");
+  document.getElementById("mobile-backdrop").classList.remove("active");
+}
+
+function goTo(pageName, fromPop) {
   document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.page === pageName));
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.getElementById("page-" + pageName).classList.add("active");
   localStorage.setItem("big4_last_page", pageName);
+  closeMobileMenu();
   if (pageName === "admin") renderAdmin();
-  if (pageName === "gallery") showGalleryIndex();
+  if (pageName === "gallery") showGalleryIndex(true);
+  if (!fromPop) {
+    if (pageName === "gallery") {
+      history.pushState({ page: "gallery", galleryView: "index" }, "", "#gallery");
+    } else {
+      history.pushState({ page: pageName }, "", "#" + pageName);
+    }
+  }
 }
+
+window.addEventListener("popstate", (e) => {
+  if (!session || !document.getElementById("app-shell").classList.contains("active")) return;
+  const state = e.state;
+  if (!state || !state.page) return;
+  if (state.page === "gallery") {
+    goTo("gallery", true);
+    if (state.galleryView === "detail" && state.member) showGalleryDetail(state.member, true);
+    else showGalleryIndex(true);
+  } else {
+    goTo(state.page, true);
+  }
+});
 
 // ---------- Chat ----------
 function renderChatMembers() {
@@ -1255,7 +1360,7 @@ function renderGoals() {
   buildMoneyRain();
   const db = loadDB();
   const grid = document.getElementById("goals-grid");
-  let html = db.goals.map((g, i) => {
+  let html = db.goals.map((g) => {
     const total = g.contributions.reduce((s, c) => s + c.amount, 0);
     const pct = Math.min(100, Math.round((total / g.amount) * 100));
     return `<div class="goal-card">
@@ -1263,7 +1368,7 @@ function renderGoals() {
       <p class="sub">Target: ${new Date(g.targetDate).toLocaleDateString()} · Travel: ${new Date(g.travelDate).toLocaleDateString()} · by ${g.creator}</p>
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
       <div class="goal-amounts"><span>KES ${total.toLocaleString()} saved</span><span>${pct}% of ${Number(g.amount).toLocaleString()}</span></div>
-      <button class="btn add-btn" onclick="openContribute(${i})">Add contribution</button>
+      <button class="btn add-btn" onclick="openContribute(${g.id})">Add contribution</button>
     </div>`;
   }).join("");
   html += `<div class="new-goal-card" onclick="openModal('goal-modal')">+ Create a new goal</div>`;
@@ -1277,20 +1382,22 @@ function createGoal() {
   const travelDate = document.getElementById("goal-travel-date").value;
   if (!title || !amount || !targetDate || !travelDate) return alert("Fill in all fields.");
   const db = loadDB();
-  db.goals.push({ title, amount, targetDate, travelDate, creator: session.username, contributions: [] });
+  db.goals.push({ id: Date.now(), title, amount, targetDate, travelDate, creator: session.username, contributions: [] });
   saveDB(db);
   closeModal("goal-modal");
   renderGoals();
   renderAdmin();
 }
 
-let activeGoalIndex = null;
-function openContribute(i) { activeGoalIndex = i; openModal("contribute-modal"); }
+let activeGoalId = null;
+function openContribute(goalId) { activeGoalId = goalId; openModal("contribute-modal"); }
 function submitContribution() {
   const amount = parseFloat(document.getElementById("contribute-amount").value);
   if (!amount) return;
   const db = loadDB();
-  db.goals[activeGoalIndex].contributions.push({ member: session.username, amount, at: Date.now() });
+  const goal = db.goals.find(g => g.id === activeGoalId);
+  if (!goal) return;
+  goal.contributions.push({ member: session.username, amount, at: Date.now() });
   saveDB(db);
   document.getElementById("contribute-amount").value = "";
   closeModal("contribute-modal");
@@ -1332,7 +1439,7 @@ function changeAvatar(member) {
       renderChatMembers();
       renderMessages();
       renderUpdates();
-      showGalleryIndex();
+      showGalleryIndex(true);
       if (session.username === member) {
         document.getElementById("composer-avatar").innerHTML = avatarInner(member);
       }
@@ -1551,7 +1658,7 @@ function toggleCommentReaction(postId, ci) {
 // ---------- Gallery ----------
 let currentGalleryMember = null;
 
-function showGalleryIndex() {
+function showGalleryIndex(fromPop) {
   currentGalleryMember = null;
   document.getElementById("gallery-detail").style.display = "none";
   document.getElementById("gallery-index").style.display = "grid";
@@ -1569,14 +1676,16 @@ function showGalleryIndex() {
       </div>
     </div>`;
   }).join("");
+  if (!fromPop) history.pushState({ page: "gallery", galleryView: "index" }, "", "#gallery");
 }
 
-function showGalleryDetail(member) {
+function showGalleryDetail(member, fromPop) {
   currentGalleryMember = member;
   document.getElementById("gallery-index").style.display = "none";
   const detail = document.getElementById("gallery-detail");
   detail.style.display = "block";
   renderGalleryDetail();
+  if (!fromPop) history.pushState({ page: "gallery", galleryView: "detail", member }, "", "#gallery-" + member);
 }
 
 function renderGalleryDetail() {
