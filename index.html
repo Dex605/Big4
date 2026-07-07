@@ -390,6 +390,7 @@ select:focus, input:focus { outline: 2px solid var(--cobalt); outline-offset: 1p
 .post-image { width: 100%; max-height: 380px; object-fit: cover; border-radius: 10px; display: block; }
 .download-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 6px; padding: 6px 10px; font-size: 11.5px; cursor: pointer; font-family: 'Inter'; }
 .post-stats { font-size: 12.5px; color: var(--fb-muted); padding: 6px 0; border-top: 1px solid #dddfe2; border-bottom: 1px solid #dddfe2; margin-bottom: 6px; display: flex; justify-content: space-between; }
+.post-stats .like-count[title] { cursor: default; text-decoration: underline dotted; text-underline-offset: 2px; }
 .post-actions { display: flex; gap: 6px; margin-bottom: 8px; }
 .post-actions button { flex: 1; background: none; border: none; padding: 8px; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; color: var(--fb-muted); cursor: pointer; }
 .post-actions button:hover { background: var(--fb-bg); }
@@ -1426,7 +1427,7 @@ function renderUpdates() {
         ${p.image ? `<div class="post-image-wrap"><img class="post-image" src="${p.image}"><button class="download-btn" onclick="downloadImage('${p.image}', ${p.id})">⬇ Save image</button></div>` : ""}
       </div>
       <div class="post-stats">
-        <span>${p.likes.length ? "❤️ " + p.likes.length : ""}</span>
+        <span class="like-count" ${p.likes.length ? `title="Liked by ${p.likes.join(', ')}"` : ""}>${p.likes.length ? "❤️ " + p.likes.length : ""}</span>
         <span>${p.comments.length ? p.comments.length + " comment" + (p.comments.length === 1 ? "" : "s") : ""}</span>
       </div>
       <div class="post-actions">
