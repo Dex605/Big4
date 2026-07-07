@@ -50,6 +50,11 @@ h1, h2, h3, .display {
 }
 
 /* ---------- Four-dot signature mark ---------- */
+#sync-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: #B5453A; color: #fff; text-align: center;
+  font-family: 'Inter', sans-serif; font-size: 12.5px; padding: 8px 12px;
+}
 .mark {
   display: inline-grid;
   grid-template-columns: repeat(2, 1fr);
@@ -220,17 +225,22 @@ select:focus, input:focus { outline: 2px solid var(--cobalt); outline-offset: 1p
 .topbar p { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
 
 /* ---------- Chat ---------- */
-#page-chat { position: relative; margin: -26px -34px; padding: 26px 34px; min-height: calc(100vh - 20px); overflow: hidden; }
-.chat-bg-layer { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; z-index: 0; }
+#page-chat { position: relative; margin: -26px -34px; padding: 10px 14px; min-height: calc(100vh - 20px); overflow: hidden; }
+.chat-wrap {
+  position: relative; overflow: hidden;
+  border: 1px solid rgba(237,240,233,0.15); border-radius: var(--radius);
+  display: flex; flex-direction: column; height: calc(100vh - 66px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+.chat-bg-layer { position: absolute; inset: -25px; background-size: cover; background-position: center; opacity: 0; z-index: 0; filter: blur(16px) brightness(0.75) saturate(1.05); transform: scale(1.08); }
 .chat-bg-layer.bg1 { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNDAwIDcwMCIgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNYXggc2xpY2UiPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJza3lBIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwQjEwMTYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiMxNDFCMjIiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMUUyODMwIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJib2R5RGFyayIgeDE9IjAiIHkxPSIwIiB4Mj0iMCIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMkEzMjNBIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzEyMTcxQyIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjE0MDAiIGhlaWdodD0iNzAwIiBmaWxsPSJ1cmwoI3NreUEpIi8+CiAgPHRleHQgeD0iNzAwIiB5PSIxNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSIxMjAiIGZpbGw9IiNFREYwRTkiIG9wYWNpdHk9IjAuMDYiIGxldHRlci1zcGFjaW5nPSIxMCI+QklHNDwvdGV4dD4KICA8IS0tIHJvYWQgLS0+CiAgPHJlY3QgeD0iMCIgeT0iNTYwIiB3aWR0aD0iMTQwMCIgaGVpZ2h0PSIxNDAiIGZpbGw9IiMwQjEwMTYiLz4KICA8bGluZSB4MT0iMCIgeTE9IjYwMCIgeDI9IjE0MDAiIHkyPSI2MDAiIHN0cm9rZT0iIzNBNDQ0RCIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtZGFzaGFycmF5PSI0MCAzMCIgb3BhY2l0eT0iMC40Ii8+CgogIDwhLS0gQ2FyIHRlbXBsYXRlIGZ1bmN0aW9uIHJlcGVhdGVkIG1hbnVhbGx5IGZvciA0IGNhcnMgLS0+CiAgPCEtLSBDYXIgMTogSkFLT00gLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjAsNDMwKSI+CiAgICA8ZWxsaXBzZSBjeD0iMTUwIiBjeT0iMTg1IiByeD0iMTgwIiByeT0iMTYiIGZpbGw9IiMwMDAiIG9wYWNpdHk9IjAuMzUiLz4KICAgIDxyZWN0IHg9IjEwIiB5PSI3MCIgd2lkdGg9IjI5MCIgaGVpZ2h0PSI4MCIgcng9IjE0IiBmaWxsPSJ1cmwoI2JvZHlEYXJrKSIvPgogICAgPHJlY3QgeD0iNDUiIHk9IjIwIiB3aWR0aD0iMjEwIiBoZWlnaHQ9IjY1IiByeD0iMTgiIGZpbGw9InVybCgjYm9keURhcmspIi8+CiAgICA8cmVjdCB4PSI2MCIgeT0iMzAiIHdpZHRoPSI4MCIgaGVpZ2h0PSI0MiIgcng9IjYiIGZpbGw9IiMzRTVBNzgiIG9wYWNpdHk9IjAuNyIvPgogICAgPHJlY3QgeD0iMTUwIiB5PSIzMCIgd2lkdGg9IjkwIiBoZWlnaHQ9IjQyIiByeD0iNiIgZmlsbD0iIzNFNUE3OCIgb3BhY2l0eT0iMC43Ii8+CiAgICA8Y2lyY2xlIGN4PSI3MCIgY3k9IjE1MiIgcj0iMzAiIGZpbGw9IiMwQjEwMTYiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjE1MiIgcj0iMTQiIGZpbGw9IiM1QzY0NkIiLz4KICAgIDxjaXJjbGUgY3g9IjI0MCIgY3k9IjE1MiIgcj0iMzAiIGZpbGw9IiMwQjEwMTYiLz48Y2lyY2xlIGN4PSIyNDAiIGN5PSIxNTIiIHI9IjE0IiBmaWxsPSIjNUM2NDZCIi8+CiAgICA8cmVjdCB4PSI5MCIgeT0iMTIwIiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjMyIiByeD0iNSIgZmlsbD0iI0VERjBFOSIvPgogICAgPHRleHQgeD0iMTUwIiB5PSIxNDMiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSIxNyIgZmlsbD0iIzEyMTcxQyI+SkFLT008L3RleHQ+CiAgICA8cmVjdCB4PSI4IiB5PSI5NSIgd2lkdGg9IjEwIiBoZWlnaHQ9IjIwIiByeD0iMyIgZmlsbD0iI0YyQTkzQiIvPgogICAgPHJlY3QgeD0iMjkyIiB5PSI5NSIgd2lkdGg9IjEwIiBoZWlnaHQ9IjIwIiByeD0iMyIgZmlsbD0iI0UyM0YzRiIvPgogIDwvZz4KCiAgPCEtLSBDYXIgMjogS1dBQ0ggLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDEwLDQ0MCkiPgogICAgPGVsbGlwc2UgY3g9IjE0MCIgY3k9IjE3NSIgcng9IjE2NSIgcnk9IjE1IiBmaWxsPSIjMDAwIiBvcGFjaXR5PSIwLjM1Ii8+CiAgICA8cmVjdCB4PSIxMCIgeT0iODAiIHdpZHRoPSIyNjAiIGhlaWdodD0iNzAiIHJ4PSIyMCIgZmlsbD0idXJsKCNib2R5RGFyaykiLz4KICAgIDxyZWN0IHg9IjU1IiB5PSIzNSIgd2lkdGg9IjE3MCIgaGVpZ2h0PSI1NSIgcng9IjIyIiBmaWxsPSJ1cmwoI2JvZHlEYXJrKSIvPgogICAgPHJlY3QgeD0iNjgiIHk9IjQ0IiB3aWR0aD0iNzAiIGhlaWdodD0iMzYiIHJ4PSI2IiBmaWxsPSIjMzQ1MkM3IiBvcGFjaXR5PSIwLjU1Ii8+CiAgICA8cmVjdCB4PSIxNDUiIHk9IjQ0IiB3aWR0aD0iNjUiIGhlaWdodD0iMzYiIHJ4PSI2IiBmaWxsPSIjMzQ1MkM3IiBvcGFjaXR5PSIwLjU1Ii8+CiAgICA8Y2lyY2xlIGN4PSI2NSIgY3k9IjE1MCIgcj0iMjgiIGZpbGw9IiMwQjEwMTYiLz48Y2lyY2xlIGN4PSI2NSIgY3k9IjE1MCIgcj0iMTMiIGZpbGw9IiM1QzY0NkIiLz4KICAgIDxjaXJjbGUgY3g9IjIxNSIgY3k9IjE1MCIgcj0iMjgiIGZpbGw9IiMwQjEwMTYiLz48Y2lyY2xlIGN4PSIyMTUiIGN5PSIxNTAiIHI9IjEzIiBmaWxsPSIjNUM2NDZCIi8+CiAgICA8cmVjdCB4PSI4MCIgeT0iMTE1IiB3aWR0aD0iMTEwIiBoZWlnaHQ9IjI4IiByeD0iNSIgZmlsbD0iI0VERjBFOSIvPgogICAgPHRleHQgeD0iMTM1IiB5PSIxMzYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzEyMTcxQyI+S1dBQ0g8L3RleHQ+CiAgICA8cmVjdCB4PSI3IiB5PSIxMDAiIHdpZHRoPSI4IiBoZWlnaHQ9IjE4IiByeD0iMyIgZmlsbD0iI0YyQTkzQiIvPgogIDwvZz4KCiAgPCEtLSBDYXIgMzogT01JTiAtLT4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3NTAsNDM1KSI+CiAgICA8ZWxsaXBzZSBjeD0iMTQ1IiBjeT0iMTgwIiByeD0iMTcwIiByeT0iMTYiIGZpbGw9IiMwMDAiIG9wYWNpdHk9IjAuMzUiLz4KICAgIDxyZWN0IHg9IjEwIiB5PSI3NSIgd2lkdGg9IjI3MCIgaGVpZ2h0PSI3NSIgcng9IjE2IiBmaWxsPSJ1cmwoI2JvZHlEYXJrKSIvPgogICAgPHJlY3QgeD0iNDgiIHk9IjI4IiB3aWR0aD0iMTk1IiBoZWlnaHQ9IjU4IiByeD0iMjAiIGZpbGw9InVybCgjYm9keURhcmspIi8+CiAgICA8cmVjdCB4PSI2MiIgeT0iMzgiIHdpZHRoPSI3NSIgaGVpZ2h0PSIzOCIgcng9IjYiIGZpbGw9IiMxRkFBNkQiIG9wYWNpdHk9IjAuNCIvPgogICAgPHJlY3QgeD0iMTQ1IiB5PSIzOCIgd2lkdGg9IjgyIiBoZWlnaHQ9IjM4IiByeD0iNiIgZmlsbD0iIzFGQUE2RCIgb3BhY2l0eT0iMC40Ii8+CiAgICA8Y2lyY2xlIGN4PSI2OCIgY3k9IjE1MyIgcj0iMjkiIGZpbGw9IiMwQjEwMTYiLz48Y2lyY2xlIGN4PSI2OCIgY3k9IjE1MyIgcj0iMTMiIGZpbGw9IiM1QzY0NkIiLz4KICAgIDxjaXJjbGUgY3g9IjIyNSIgY3k9IjE1MyIgcj0iMjkiIGZpbGw9IiMwQjEwMTYiLz48Y2lyY2xlIGN4PSIyMjUiIGN5PSIxNTMiIHI9IjEzIiBmaWxsPSIjNUM2NDZCIi8+CiAgICA8cmVjdCB4PSI4NSIgeT0iMTE4IiB3aWR0aD0iMTE1IiBoZWlnaHQ9IjI5IiByeD0iNSIgZmlsbD0iI0VERjBFOSIvPgogICAgPHRleHQgeD0iMTQyIiB5PSIxNDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC13ZWlnaHQ9IjgwMCIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzEyMTcxQyI+T01JTjwvdGV4dD4KICAgIDxyZWN0IHg9IjgiIHk9Ijk3IiB3aWR0aD0iOSIgaGVpZ2h0PSIxOSIgcng9IjMiIGZpbGw9IiNGMkE5M0IiLz4KICA8L2c+CgogIDwhLS0gQ2FyIDQ6IE9NV0FOREEgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTA4MCw0MzIpIj4KICAgIDxlbGxpcHNlIGN4PSIxNTAiIGN5PSIxODIiIHJ4PSIxNzUiIHJ5PSIxNiIgZmlsbD0iIzAwMCIgb3BhY2l0eT0iMC4zNSIvPgogICAgPHJlY3QgeD0iMTAiIHk9IjcyIiB3aWR0aD0iMjgwIiBoZWlnaHQ9Ijc4IiByeD0iMTUiIGZpbGw9InVybCgjYm9keURhcmspIi8+CiAgICA8cmVjdCB4PSI0NiIgeT0iMjQiIHdpZHRoPSIyMDUiIGhlaWdodD0iNjAiIHJ4PSIxOSIgZmlsbD0idXJsKCNib2R5RGFyaykiLz4KICAgIDxyZWN0IHg9IjYwIiB5PSIzNCIgd2lkdGg9Ijc4IiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI0M5QTIyNyIgb3BhY2l0eT0iMC40NSIvPgogICAgPHJlY3QgeD0iMTQ4IiB5PSIzNCIgd2lkdGg9Ijg1IiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI0M5QTIyNyIgb3BhY2l0eT0iMC40NSIvPgogICAgPGNpcmNsZSBjeD0iNzAiIGN5PSIxNTUiIHI9IjI5IiBmaWxsPSIjMEIxMDE2Ii8+PGNpcmNsZSBjeD0iNzAiIGN5PSIxNTUiIHI9IjEzIiBmaWxsPSIjNUM2NDZCIi8+CiAgICA8Y2lyY2xlIGN4PSIyMzIiIGN5PSIxNTUiIHI9IjI5IiBmaWxsPSIjMEIxMDE2Ii8+PGNpcmNsZSBjeD0iMjMyIiBjeT0iMTU1IiByPSIxMyIgZmlsbD0iIzVDNjQ2QiIvPgogICAgPHJlY3QgeD0iODIiIHk9IjEyMCIgd2lkdGg9IjEzMCIgaGVpZ2h0PSIyOSIgcng9IjUiIGZpbGw9IiNFREYwRTkiLz4KICAgIDx0ZXh0IHg9IjE0NyIgeT0iMTQyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtd2VpZ2h0PSI4MDAiIGZvbnQtc2l6ZT0iMTUiIGZpbGw9IiMxMjE3MUMiPk9NV0FOREE8L3RleHQ+CiAgICA8cmVjdCB4PSI4IiB5PSI5OCIgd2lkdGg9IjkiIGhlaWdodD0iMTkiIHJ4PSIzIiBmaWxsPSIjRjJBOTNCIi8+CiAgPC9nPgo8L3N2Zz4K"); animation: chatBgFade 18s infinite; }
 .chat-bg-layer.bg2 { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNDAwIDcwMCIgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNYXggc2xpY2UiPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJza3lCIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxMjE3MUMiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiMxQjI0MzAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjQzMzQ3Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJzdHJpcGVCIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMCI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGMkE5M0IiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiNGMkE5M0IiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1MiUiIHN0b3AtY29sb3I9IiMzNDUyQzciLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMzQ1MkM3Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iMTQwMCIgaGVpZ2h0PSI3MDAiIGZpbGw9InVybCgjc2t5QikiLz4KICA8ZyBvcGFjaXR5PSIwLjUiIGZpbGw9IiMwRTEzMTkiPgogICAgPHJlY3QgeD0iNDAiIHk9IjQyMCIgd2lkdGg9IjkwIiBoZWlnaHQ9IjI4MCIvPgogICAgPHJlY3QgeD0iMTUwIiB5PSIzNjAiIHdpZHRoPSI3MCIgaGVpZ2h0PSIzNDAiLz4KICAgIDxyZWN0IHg9IjI0MCIgeT0iNDQwIiB3aWR0aD0iODAiIGhlaWdodD0iMjYwIi8+CiAgICA8cmVjdCB4PSIxMDgwIiB5PSI0MDAiIHdpZHRoPSI4NSIgaGVpZ2h0PSIzMDAiLz4KICAgIDxyZWN0IHg9IjExODAiIHk9IjM0MCIgd2lkdGg9Ijc1IiBoZWlnaHQ9IjM2MCIvPgogICAgPHJlY3QgeD0iMTI4MCIgeT0iNDMwIiB3aWR0aD0iOTAiIGhlaWdodD0iMjcwIi8+CiAgPC9nPgogIDxyZWN0IHg9IjAiIHk9IjUwMCIgd2lkdGg9IjE0MDAiIGhlaWdodD0iMTQiIGZpbGw9InVybCgjc3RyaXBlQikiIG9wYWNpdHk9IjAuNSIgdHJhbnNmb3JtPSJza2V3WSgtMS41KSIvPgogIDx0ZXh0IHg9IjcwMCIgeT0iMzMwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSI4MDAiIGZvbnQtc2l6ZT0iMjIwIiBmaWxsPSIjRURGMEU5IiBvcGFjaXR5PSIwLjA5IiBsZXR0ZXItc3BhY2luZz0iMTQiPkJJRzQ8L3RleHQ+CiAgPHRleHQgeD0iNzAwIiB5PSI0MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjUwMCIgZm9udC1zaXplPSIyNiIgZmlsbD0iI0VERjBFOSIgb3BhY2l0eT0iMC4xMiIgbGV0dGVyLXNwYWNpbmc9IjgiPkZPVVIgTkFNRVMgwrcgT05FIFRSSUJFPC90ZXh0Pgo8L3N2Zz4K"); animation: chatBgFade 18s infinite; animation-delay: 9s; }
 @keyframes chatBgFade { 0%, 42% { opacity: 1; } 50%, 92% { opacity: 0; } 100% { opacity: 1; } }
-#page-chat .topbar, #page-chat .chat-wrap { position: relative; z-index: 1; }
-#page-chat .topbar h2 { color: #EDF0E9; }
-.chat-wrap { background: rgba(255,255,255,0.97); backdrop-filter: blur(4px); border: 1px solid var(--line); border-radius: var(--radius); display: flex; flex-direction: column; height: calc(100vh - 150px); overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-.chat-wrap::before { content: ""; display: block; height: 4px; background: var(--stripe); }
-.chat-members { display: flex; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
-.member-chip { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
+#page-chat .topbar { position: relative; z-index: 1; margin-bottom: 10px; }
+#page-chat .topbar h2 { color: #EDF0E9; font-size: 19px; }
+.chat-wrap::before { content: ""; display: block; height: 4px; background: var(--stripe); position: relative; z-index: 2; }
+.chat-members { position: relative; z-index: 1; display: flex; gap: 14px; padding: 14px 18px; border-bottom: 1px solid rgba(237,240,233,0.15); background: rgba(18,23,28,0.35); }
+.member-chip { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: rgba(237,240,233,0.85); }
 .avatar {
   width: 26px; height: 26px; border-radius: 8px;
   background: var(--paper);
@@ -249,11 +259,11 @@ select:focus, input:focus { outline: 2px solid var(--cobalt); outline-offset: 1p
 .avatar .status { position: absolute; bottom: -1px; right: -1px; width: 8px; height: 8px; border-radius: 50%; background: var(--money); border: 2px solid var(--card); }
 .avatar .status.off { background: #C7C2B6; }
 
-.messages { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.messages { position: relative; z-index: 1; flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
 .msg { display: flex; gap: 10px; max-width: 70%; position: relative; }
 .msg .bubble { background: var(--paper); padding: 9px 13px; border-radius: 16px; font-size: 13.5px; position: relative; }
 .msg .bubble img.chat-image { max-width: 220px; border-radius: 12px; display: block; margin-top: 4px; }
-.msg .meta { font-size: 11px; color: var(--muted); margin-bottom: 3px; display: flex; gap: 8px; align-items: center; }
+.msg .meta { font-size: 11px; color: rgba(237,240,233,0.75); margin-bottom: 3px; display: flex; gap: 8px; align-items: center; }
 .msg.me { align-self: flex-end; flex-direction: row-reverse; }
 .msg.me .bubble { background: var(--cobalt); color: #fff; border-bottom-right-radius: 4px; }
 .msg:not(.me) .bubble { border-bottom-left-radius: 4px; }
@@ -268,13 +278,13 @@ select:focus, input:focus { outline: 2px solid var(--cobalt); outline-offset: 1p
 .msg-hover-actions button:hover { color: var(--cobalt); border-color: var(--cobalt); }
 .msg-edit-box { font-size: 13px; padding: 6px 10px; width: 180px; }
 
-.reply-preview { display: flex; align-items: center; justify-content: space-between; background: var(--paper); border-top: 1px solid var(--line); padding: 8px 18px; font-size: 12px; color: var(--muted); }
-.reply-preview strong { color: var(--cobalt-dark); }
-.reply-preview .cancel-reply { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 14px; }
+.reply-preview { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; background: rgba(18,23,28,0.5); border-top: 1px solid rgba(237,240,233,0.15); padding: 8px 18px; font-size: 12px; color: rgba(237,240,233,0.8); }
+.reply-preview strong { color: var(--amber); }
+.reply-preview .cancel-reply { background: none; border: none; cursor: pointer; color: rgba(237,240,233,0.7); font-size: 14px; }
 
-.composer { display: flex; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--line); }
+.composer { position: relative; z-index: 1; display: flex; gap: 8px; padding: 14px 18px; border-top: 1px solid rgba(237,240,233,0.15); background: rgba(18,23,28,0.35); }
 .composer input { flex: 1; }
-.icon-btn { background: var(--paper); border: 1px solid var(--line); border-radius: 9px; width: 38px; cursor: pointer; font-size: 15px; }
+.icon-btn { background: rgba(237,240,233,0.9); border: 1px solid var(--line); border-radius: 9px; width: 38px; cursor: pointer; font-size: 15px; }
 
 /* ---------- Savings ---------- */
 #page-savings { position: relative; margin: -26px -34px; padding: 26px 34px; min-height: calc(100vh - 20px); overflow: hidden; background: linear-gradient(180deg, var(--ink) 0%, #1B2A24 100%); }
@@ -609,17 +619,18 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
 </div>
 
 <!-- ============ APP SHELL ============ -->
+<div id="sync-banner" style="display:none;"></div>
 <div id="app-shell">
   <div class="sidebar">
     <div class="brand">
       <div class="mark"><span></span><span></span><span></span><span></span></div>
       <span class="name">Big4</span>
     </div>
+    <div class="nav-item" data-page="updates" onclick="goTo('updates')">📣 <span class="label">Updates</span></div>
     <div class="nav-item active" data-page="chat" onclick="goTo('chat')">💬 <span class="label">Chat</span></div>
     <div class="nav-item" data-page="savings" onclick="goTo('savings')">🎯 <span class="label">Savings</span></div>
     <div class="nav-item" data-page="crew" onclick="goTo('crew')">👥 <span class="label">The Crew</span></div>
     <div class="nav-item" data-page="gallery" onclick="goTo('gallery')">🖼 <span class="label">Gallery</span></div>
-    <div class="nav-item" data-page="updates" onclick="goTo('updates')">📣 <span class="label">Updates</span></div>
     <div class="nav-item" id="admin-nav" data-page="admin" onclick="goTo('admin')" style="display:none;">🛠 <span class="label">Admin</span></div>
     <div class="sidebar-footer">
       <span class="dot-online"></span>
@@ -631,7 +642,7 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
   <div class="main">
 
     <!-- CHAT PAGE -->
-    <div class="page active" id="page-chat">
+    <div class="page" id="page-chat">
       <div class="chat-bg-layer bg1"></div>
       <div class="chat-bg-layer bg2"></div>
       <div class="topbar">
@@ -653,7 +664,7 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
     </div>
 
     <!-- UPDATES PAGE -->
-    <div class="page" id="page-updates">
+    <div class="page active" id="page-updates">
       <div class="topbar">
         <div>
           <h2>Updates</h2>
@@ -845,26 +856,41 @@ function saveDB(db) {
   pushState();
 }
 
+function showSyncBanner(msg) {
+  const b = document.getElementById("sync-banner");
+  b.textContent = msg;
+  b.style.display = "block";
+}
+function hideSyncBanner() {
+  document.getElementById("sync-banner").style.display = "none";
+}
+
 async function pushState() {
   try {
-    await supabaseClient.from("app_state").upsert({ id: 1, data: dbCache, updated_at: new Date().toISOString() });
+    const { error } = await supabaseClient.from("app_state").upsert({ id: 1, data: dbCache, updated_at: new Date().toISOString() });
+    if (error) throw error;
+    hideSyncBanner();
   } catch (e) {
     console.error("Sync error:", e);
+    showSyncBanner("⚠ Not syncing to the shared database — changes are only saved on this device. Check the Supabase setup (table 'app_state' must exist).");
   }
 }
 
 async function initSync() {
   try {
     const { data, error } = await supabaseClient.from("app_state").select("data").eq("id", 1).single();
+    if (error) throw error;
     if (data && data.data) {
       dbCache = ensureDefaults(data.data);
     } else {
       dbCache = defaultState();
       await supabaseClient.from("app_state").upsert({ id: 1, data: dbCache });
     }
+    hideSyncBanner();
   } catch (e) {
-    console.error("Initial load failed, using local defaults:", e);
+    console.error("Initial load failed:", e);
     dbCache = defaultState();
+    showSyncBanner("⚠ Couldn't connect to the shared database — using this device only for now. Check the Supabase setup (run supabase_setup.sql).");
   }
   appReady = true;
   subscribeRealtime();
@@ -911,7 +937,31 @@ function avatarInner(member) {
   return src ? `<img src="${src}">` : member[0];
 }
 
-let session = JSON.parse(sessionStorage.getItem("big4_session") || "null");
+const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+function loadStoredSession() {
+  const raw = localStorage.getItem("big4_session");
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.lastActive || Date.now() - parsed.lastActive > SESSION_TTL_MS) {
+      localStorage.removeItem("big4_session");
+      return null;
+    }
+    return parsed;
+  } catch (e) {
+    return null;
+  }
+}
+function touchSession() {
+  if (!session) return;
+  session.lastActive = Date.now();
+  localStorage.setItem("big4_session", JSON.stringify(session));
+}
+
+let session = loadStoredSession();
+setInterval(touchSession, 5 * 60 * 1000); // keep session alive every 5 min while app is open
+document.addEventListener("click", () => { if (session) touchSession(); });
 
 function openAuth(view) {
   document.getElementById("landing-screen").style.display = "none";
@@ -979,8 +1029,8 @@ function handleLogin() {
 }
 
 function loginAs(username) {
-  session = { username };
-  sessionStorage.setItem("big4_session", JSON.stringify(session));
+  session = { username, lastActive: Date.now() };
+  localStorage.setItem("big4_session", JSON.stringify(session));
   const db = loadDB();
   db.users[username].lastSeen = Date.now();
   saveDB(db);
@@ -989,7 +1039,8 @@ function loginAs(username) {
 
 function logout() {
   session = null;
-  sessionStorage.removeItem("big4_session");
+  localStorage.removeItem("big4_session");
+  localStorage.removeItem("big4_last_page");
   document.getElementById("app-shell").classList.remove("active");
   document.getElementById("auth-screen").style.display = "none";
   document.getElementById("landing-screen").style.display = "flex";
@@ -1009,12 +1060,16 @@ function enterApp() {
   showGalleryIndex();
   renderUpdates();
   renderAdmin();
+  let lastPage = localStorage.getItem("big4_last_page") || "updates";
+  if (lastPage === "admin" && session.username !== "Jakom") lastPage = "chat";
+  goTo(lastPage);
 }
 
 function goTo(pageName) {
   document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.page === pageName));
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.getElementById("page-" + pageName).classList.add("active");
+  localStorage.setItem("big4_last_page", pageName);
   if (pageName === "admin") renderAdmin();
   if (pageName === "gallery") showGalleryIndex();
 }
