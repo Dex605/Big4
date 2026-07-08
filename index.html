@@ -693,7 +693,7 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
         <div class="composer">
           <button class="icon-btn" title="Attach" onclick="attachFile()">📎</button>
           <button class="icon-btn" title="Emoji" onclick="insertEmoji()">😊</button>
-          <input type="text" id="msg-input" placeholder="Message the crew... (@name to mention)" onkeydown="if(event.key==='Enter') sendMessage()">
+          <input type="text" id="msg-input" placeholder="Message the crew... (@name to mention)" onkeydown="if(event.key==='Enter' && !event.isComposing) sendMessage()">
           <button class="btn" style="width:auto; padding:9px 16px;" onclick="sendMessage()">Send</button>
         </div>
       </div>
@@ -1465,7 +1465,7 @@ function editMessage(msgId) {
   const m = db.messages.find(x => x.id === msgId);
   if (!m) return;
   const bubble = document.getElementById(`bubble-${msgId}`);
-  bubble.innerHTML = `<input type="text" class="msg-edit-box" id="msg-edit-${msgId}" value="${m.text.replace(/"/g, '&quot;')}" onkeydown="if(event.key==='Enter') saveMessageEdit(${msgId})">`;
+  bubble.innerHTML = `<input type="text" class="msg-edit-box" id="msg-edit-${msgId}" value="${m.text.replace(/"/g, '&quot;')}" onkeydown="if(event.key==='Enter' && !event.isComposing) saveMessageEdit(${msgId})">`;
   document.getElementById(`msg-edit-${msgId}`).focus();
 }
 function saveMessageEdit(msgId) {
@@ -1742,7 +1742,7 @@ function renderUpdates() {
       </div>
       <div class="comment-list">${commentsHtml}</div>
       <div class="comment-input-row">
-        <input type="text" id="comment-input-${p.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter') addComment(${p.id})">
+        <input type="text" id="comment-input-${p.id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter' && !event.isComposing) addComment(${p.id})">
         <button class="btn small-btn" onclick="addComment(${p.id})">Send</button>
       </div>
     </div>`;
@@ -1792,7 +1792,11 @@ function downloadImage(src, postId) {
   a.click();
 }
 
+const toggleLocks = new Set();
 function toggleLike(postId) {
+  if (toggleLocks.has(postId)) return; // ignore a second rapid tap while the first is settling
+  toggleLocks.add(postId);
+  setTimeout(() => toggleLocks.delete(postId), 700);
   const db = loadDB();
   const post = db.posts.find(p => p.id === postId);
   const i = post.likes.indexOf(session.username);
@@ -1846,6 +1850,10 @@ function deleteComment(postId, ci) {
 }
 
 function toggleCommentReaction(postId, ci) {
+  const lockKey = "c" + postId + "-" + ci;
+  if (toggleLocks.has(lockKey)) return;
+  toggleLocks.add(lockKey);
+  setTimeout(() => toggleLocks.delete(lockKey), 700);
   const db = loadDB();
   const comment = db.posts.find(p => p.id === postId).comments[ci];
   const i = comment.reactions.indexOf(session.username);
