@@ -880,10 +880,17 @@ function ensureDefaults(db) {
   if (!db.deletedIds.goals) db.deletedIds.goals = [];
   db.posts.forEach(p => {
     if (p.edited === undefined) p.edited = false;
-    p.comments.forEach(c => { if (!c.reactions) c.reactions = []; if (c.edited === undefined) c.edited = false; });
+    p.comments.forEach((c, ci) => {
+      if (!c.reactions) c.reactions = [];
+      if (c.edited === undefined) c.edited = false;
+      if (!c.id) c.id = "legacy-" + p.id + "-" + ci;
+    });
   });
   db.messages.forEach(m => { if (!m.id) m.id = Math.floor(Math.random() * 1e9) + m.at; if (m.edited === undefined) m.edited = false; });
-  db.goals.forEach((g, i) => { if (!g.id) g.id = Math.floor(Math.random() * 1e9) + i; });
+  db.goals.forEach((g, i) => {
+    if (!g.id) g.id = Math.floor(Math.random() * 1e9) + i;
+    (g.contributions || []).forEach((c, ci) => { if (!c.id) c.id = "legacy-" + g.id + "-" + ci; });
+  });
   return db;
 }
 
@@ -954,6 +961,48 @@ function mergeIdSets(remote, local) {
   return Array.from(new Set([...(remote || []), ...(local || [])]));
 }
 
+// Deep-merges goals so a device with a slightly stale copy of a goal can never
+// silently erase a contribution someone else added in the meantime — contributions
+// are unioned by their own id rather than the whole goal object being replaced.
+function mergeGoalsDeep(remoteArr, localArr) {
+  remoteArr = remoteArr || [];
+  localArr = localArr || [];
+  const map = new Map();
+  remoteArr.forEach(g => map.set(g.id, g));
+  localArr.forEach(g => {
+    const existing = map.get(g.id);
+    if (!existing) { map.set(g.id, g); return; }
+    map.set(g.id, Object.assign({}, existing, g, {
+      contributions: mergeById(existing.contributions, g.contributions),
+    }));
+  });
+  return Array.from(map.values());
+}
+
+// Same idea for posts: comments are unioned by their own id so one device's stale
+// copy of a post can never erase a comment someone else just left. For likes, this
+// device's own like/unlike is always respected; everyone else's likes are unioned in.
+function mergePostsDeep(remoteArr, localArr) {
+  remoteArr = remoteArr || [];
+  localArr = localArr || [];
+  const map = new Map();
+  remoteArr.forEach(p => map.set(p.id, p));
+  localArr.forEach(p => {
+    const existing = map.get(p.id);
+    if (!existing) { map.set(p.id, p); return; }
+    const likesSet = new Set([...(existing.likes || []), ...(p.likes || [])]);
+    if (session && session.username) {
+      if ((p.likes || []).includes(session.username)) likesSet.add(session.username);
+      else likesSet.delete(session.username);
+    }
+    map.set(p.id, Object.assign({}, existing, p, {
+      likes: Array.from(likesSet),
+      comments: mergeById(existing.comments, p.comments),
+    }));
+  });
+  return Array.from(map.values());
+}
+
 function mergeStates(remote, local) {
   remote = remote || {};
   local = local || {};
@@ -967,8 +1016,8 @@ function mergeStates(remote, local) {
     avatars: Object.assign({}, remote.avatars || {}, local.avatars || {}),
     gallery: {},
     messages: mergeById(remote.messages, local.messages).filter(m => !deletedIds.messages.includes(m.id)),
-    posts: mergeById(remote.posts, local.posts).filter(p => !deletedIds.posts.includes(p.id)),
-    goals: mergeById(remote.goals, local.goals).filter(g => !deletedIds.goals.includes(g.id)),
+    posts: mergePostsDeep(remote.posts, local.posts).filter(p => !deletedIds.posts.includes(p.id)),
+    goals: mergeGoalsDeep(remote.goals, local.goals).filter(g => !deletedIds.goals.includes(g.id)),
     deletedIds,
   };
   MEMBERS.forEach(m => {
@@ -1149,7 +1198,7 @@ function compressImage(file, maxDim, quality) {
         const canvas = document.createElement("canvas");
         canvas.width = width; canvas.height = height;
         canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", quality));
+        canvas.toBlob(blob => resolve(blob), "image/jpeg", quality);
       };
       img.onerror = reject;
       img.src = e.target.result;
@@ -1157,6 +1206,21 @@ function compressImage(file, maxDim, quality) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+// Uploads a compressed photo to Supabase Storage and returns its public URL,
+// instead of embedding the raw image data inside the shared app_state record.
+// This keeps that shared record small so saves never fail due to accumulated photos.
+async function uploadPhotoToStorage(file, folder, maxDim, quality) {
+  const blob = await compressImage(file, maxDim, quality);
+  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const { error } = await supabaseClient.storage.from("photos").upload(path, blob, {
+    contentType: "image/jpeg",
+    upsert: false,
+  });
+  if (error) throw error;
+  const { data } = supabaseClient.storage.from("photos").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 function avatarHTML(member, extraClass) {
@@ -1500,16 +1564,16 @@ function attachFile() {
   inp.onchange = async () => {
     if (!inp.files[0]) return;
     try {
-      const compressed = await compressImage(inp.files[0], 900, 0.7);
+      const url = await uploadPhotoToStorage(inp.files[0], "chat", 900, 0.7);
       const db = loadDB();
-      const msg = { id: Date.now(), from: session.username, type: "image", image: compressed, at: Date.now(), edited: false };
+      const msg = { id: Date.now(), from: session.username, type: "image", image: url, at: Date.now(), edited: false };
       if (replyingTo) { msg.replyTo = { author: replyingTo.author, text: replyingTo.text }; }
       db.messages.push(msg);
       saveDB(db);
       cancelReply();
       renderMessages();
     } catch (e) {
-      console.error("Failed to process chat image:", e);
+      console.error("Failed to upload chat image:", e);
     }
   };
   inp.click();
@@ -1595,7 +1659,7 @@ function submitContribution() {
   const db = loadDB();
   const goal = db.goals.find(g => g.id === activeGoalId);
   if (!goal) return;
-  goal.contributions.push({ member: session.username, amount, at: Date.now() });
+  goal.contributions.push({ id: Date.now() + "-" + Math.random().toString(36).slice(2, 7), member: session.username, amount, at: Date.now() });
   saveDB(db);
   document.getElementById("contribute-amount").value = "";
   closeModal("contribute-modal");
@@ -1629,9 +1693,9 @@ function changeAvatar(member) {
   inp.onchange = async () => {
     if (!inp.files[0]) return;
     try {
-      const compressed = await compressImage(inp.files[0], 500, 0.75);
+      const url = await uploadPhotoToStorage(inp.files[0], "avatars", 500, 0.75);
       const db = loadDB();
-      db.avatars[member] = compressed;
+      db.avatars[member] = url;
       saveDB(db);
       renderCrew();
       renderChatMembers();
@@ -1642,7 +1706,7 @@ function changeAvatar(member) {
         document.getElementById("composer-avatar").innerHTML = avatarInner(member);
       }
     } catch (e) {
-      console.error("Failed to process avatar image:", e);
+      console.error("Failed to upload avatar image:", e);
     }
   };
   inp.click();
@@ -1657,11 +1721,14 @@ function attachPostImage() {
   inp.accept = "image/*";
   inp.onchange = async () => {
     if (!inp.files[0]) return;
+    const preview = document.getElementById("post-image-preview");
+    preview.innerHTML = `<span style="font-size:12px; color:var(--muted);">Uploading photo…</span>`;
     try {
-      pendingPostImage = await compressImage(inp.files[0], 1000, 0.72);
-      document.getElementById("post-image-preview").innerHTML = `<img src="${pendingPostImage}">`;
+      pendingPostImage = await uploadPhotoToStorage(inp.files[0], "posts", 1000, 0.72);
+      preview.innerHTML = `<img src="${pendingPostImage}">`;
     } catch (e) {
-      console.error("Failed to process post image:", e);
+      console.error("Failed to upload post image:", e);
+      preview.innerHTML = `<span style="font-size:12px; color:#B5453A;">Photo failed to upload — try again.</span>`;
     }
   };
   inp.click();
@@ -1699,16 +1766,16 @@ function renderUpdates() {
     const liked = p.likes.includes(session.username);
     const mine = p.author === session.username;
     const isAdmin = session.username === "Jakom";
-    const commentsHtml = p.comments.map((c, ci) => {
+    const commentsHtml = p.comments.map((c) => {
       const reacted = c.reactions.includes(session.username);
       const cMine = c.author === session.username;
       return `<div class="comment-row">
         ${avatarHTML(c.author, "")}
         <div class="comment-body">
-          <div class="comment-bubble" id="comment-view-${p.id}-${ci}"><strong>${c.author}</strong>${c.text}${c.edited ? ' <span style="opacity:0.5;font-size:10px;">(edited)</span>' : ''}</div>
+          <div class="comment-bubble" id="comment-view-${p.id}-${c.id}"><strong>${c.author}</strong>${c.text}${c.edited ? ' <span style="opacity:0.5;font-size:10px;">(edited)</span>' : ''}</div>
           <div class="comment-sub-actions">
-            <button class="${reacted ? 'reacted' : ''}" onclick="toggleCommentReaction(${p.id}, ${ci})">❤ Like ${c.reactions.length ? `<span class="react-count">(${c.reactions.length})</span>` : ''}</button>
-            ${cMine ? `<button onclick="editComment(${p.id}, ${ci})">Edit</button><button onclick="deleteComment(${p.id}, ${ci})">Delete</button>` : ""}
+            <button class="${reacted ? 'reacted' : ''}" onclick="toggleCommentReaction(${p.id}, '${c.id}')">❤ Like ${c.reactions.length ? `<span class="react-count">(${c.reactions.length})</span>` : ''}</button>
+            ${cMine ? `<button onclick="editComment(${p.id}, '${c.id}')">Edit</button><button onclick="deleteComment(${p.id}, '${c.id}')">Delete</button>` : ""}
           </div>
         </div>
       </div>`;
@@ -1816,46 +1883,46 @@ function addComment(postId) {
   if (!text) return;
   const db = loadDB();
   const post = db.posts.find(p => p.id === postId);
-  post.comments.push({ author: session.username, text, at: Date.now(), reactions: [], edited: false });
+  post.comments.push({ id: Date.now() + "-" + Math.random().toString(36).slice(2, 7), author: session.username, text, at: Date.now(), reactions: [], edited: false });
   saveDB(db);
   renderUpdates();
 }
 
-function editComment(postId, ci) {
+function editComment(postId, commentId) {
   const db = loadDB();
-  const comment = db.posts.find(p => p.id === postId).comments[ci];
-  const view = document.getElementById(`comment-view-${postId}-${ci}`);
+  const comment = db.posts.find(p => p.id === postId).comments.find(c => c.id === commentId);
+  const view = document.getElementById(`comment-view-${postId}-${commentId}`);
   view.outerHTML = `<div>
-    <input type="text" class="comment-edit-box" id="comment-edit-${postId}-${ci}" value="${comment.text.replace(/"/g, '&quot;')}">
-    <button class="link-btn" style="margin:0 0 0 6px;" onclick="saveCommentEdit(${postId}, ${ci})">Save</button>
+    <input type="text" class="comment-edit-box" id="comment-edit-${postId}-${commentId}" value="${comment.text.replace(/"/g, '&quot;')}">
+    <button class="link-btn" style="margin:0 0 0 6px;" onclick="saveCommentEdit(${postId}, '${commentId}')">Save</button>
   </div>`;
 }
 
-function saveCommentEdit(postId, ci) {
-  const newText = document.getElementById(`comment-edit-${postId}-${ci}`).value.trim();
+function saveCommentEdit(postId, commentId) {
+  const newText = document.getElementById(`comment-edit-${postId}-${commentId}`).value.trim();
   const db = loadDB();
-  const comment = db.posts.find(p => p.id === postId).comments[ci];
+  const comment = db.posts.find(p => p.id === postId).comments.find(c => c.id === commentId);
   comment.text = newText;
   comment.edited = true;
   saveDB(db);
   renderUpdates();
 }
 
-function deleteComment(postId, ci) {
+function deleteComment(postId, commentId) {
   const db = loadDB();
   const post = db.posts.find(p => p.id === postId);
-  post.comments.splice(ci, 1);
+  post.comments = post.comments.filter(c => c.id !== commentId);
   saveDB(db);
   renderUpdates();
 }
 
-function toggleCommentReaction(postId, ci) {
-  const lockKey = "c" + postId + "-" + ci;
+function toggleCommentReaction(postId, commentId) {
+  const lockKey = "c" + postId + "-" + commentId;
   if (toggleLocks.has(lockKey)) return;
   toggleLocks.add(lockKey);
   setTimeout(() => toggleLocks.delete(lockKey), 700);
   const db = loadDB();
-  const comment = db.posts.find(p => p.id === postId).comments[ci];
+  const comment = db.posts.find(p => p.id === postId).comments.find(c => c.id === commentId);
   const i = comment.reactions.indexOf(session.username);
   if (i === -1) comment.reactions.push(session.username);
   else comment.reactions.splice(i, 1);
@@ -1948,19 +2015,19 @@ function uploadPhoto(member) {
   inp.accept = "image/*";
   inp.multiple = true;
   inp.onchange = async () => {
-    const db = loadDB();
     const files = Array.from(inp.files);
     if (!files.length) return;
     for (const file of files) {
       try {
-        const compressed = await compressImage(file, 1000, 0.72);
-        db.gallery[member].push(compressed);
+        const url = await uploadPhotoToStorage(file, "gallery", 1000, 0.72);
+        const db = loadDB();
+        db.gallery[member].push(url);
+        saveDB(db);
+        renderGalleryDetail();
       } catch (e) {
-        console.error("Failed to process image:", e);
+        console.error("Failed to upload photo:", e);
       }
     }
-    saveDB(db);
-    renderGalleryDetail();
   };
   inp.click();
 }
