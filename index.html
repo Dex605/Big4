@@ -1125,7 +1125,10 @@ function subscribeRealtime() {
     .channel("app_state_sync")
     .on("postgres_changes", { event: "UPDATE", schema: "public", table: "app_state", filter: "id=eq.1" }, (payload) => {
       if (payload.new && payload.new.data) {
-        dbCache = ensureDefaults(payload.new.data);
+        // Merge instead of replacing outright — otherwise a live update that doesn't
+        // yet know about something you just did locally (like a message you just sent)
+        // would briefly wipe it from your screen until the next update caught up.
+        dbCache = mergeStates(payload.new.data, dbCache);
         refreshCurrentViews();
       }
     })
