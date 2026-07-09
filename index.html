@@ -591,7 +591,7 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
           <p class="sub">Enter the group.</p>
           <div class="field">
             <label>Who are you?</label>
-            <select id="login-username">
+            <select id="login-username" onchange="handleUsernameSelect()">
               <option value="">Choose your name</option>
               <option>Jakom</option>
               <option>Kwach</option>
@@ -599,11 +599,28 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
               <option>Omwanda</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" id="login-password-field">
             <label>Password</label>
             <div class="password-wrap">
               <input type="password" id="login-password" placeholder="Enter password">
               <button type="button" class="toggle-pw" onclick="togglePassword('login-password', this)">Show</button>
+            </div>
+          </div>
+          <div id="login-reset-fields" style="display:none;">
+            <p class="sub" style="margin-top:-4px; color:var(--amber-dark);">Your password was reset by the admin — set a new one to continue. Your account and everything in it stays exactly as it was.</p>
+            <div class="field">
+              <label>New password</label>
+              <div class="password-wrap">
+                <input type="password" id="login-new-password" placeholder="Create new password">
+                <button type="button" class="toggle-pw" onclick="togglePassword('login-new-password', this)">Show</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Confirm new password</label>
+              <div class="password-wrap">
+                <input type="password" id="login-new-password-confirm" placeholder="Re-enter new password">
+                <button type="button" class="toggle-pw" onclick="togglePassword('login-new-password-confirm', this)">Show</button>
+              </div>
             </div>
           </div>
           <button class="btn" id="login-submit-btn" onclick="handleLogin()">Enter Big4</button>
@@ -819,16 +836,6 @@ td.numeric, td.money { font-family: 'Space Mono', monospace; }
   </div>
 </div>
 
-<!-- Modal: reset password -->
-<div class="modal-overlay" id="reset-modal">
-  <div class="modal">
-    <h3>Set new password</h3>
-    <p class="sub" id="reset-modal-name" style="margin-bottom:16px; text-align:left;"></p>
-    <div class="field"><label>New password</label><input id="reset-password" type="password"></div>
-    <button class="btn" onclick="submitReset()">Save new password</button>
-    <button class="link-btn" onclick="closeModal('reset-modal')">Cancel</button>
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -1292,6 +1299,9 @@ function showLogin() {
   document.getElementById("login-view").style.display = "block";
   document.getElementById("signup-view").style.display = "none";
   document.getElementById("forgot-view").style.display = "none";
+  document.getElementById("login-password-field").style.display = "block";
+  document.getElementById("login-reset-fields").style.display = "none";
+  document.getElementById("login-submit-btn").textContent = "Enter Big4";
 }
 function showSignup() {
   document.getElementById("login-view").style.display = "none";
@@ -1333,13 +1343,34 @@ function handleSignup() {
   loginAs(username);
 }
 
+function handleUsernameSelect() {
+  const username = document.getElementById("login-username").value;
+  const db = loadDB();
+  const needsReset = username && db.users[username] && db.users[username].password === null;
+  document.getElementById("login-password-field").style.display = needsReset ? "none" : "block";
+  document.getElementById("login-reset-fields").style.display = needsReset ? "block" : "none";
+  document.getElementById("login-submit-btn").textContent = needsReset ? "Set password & enter" : "Enter Big4";
+}
+
 function handleLogin() {
   if (!appReady) return authError("Still connecting — try again in a second.");
   const username = document.getElementById("login-username").value;
-  const password = document.getElementById("login-password").value;
   const db = loadDB();
   if (!username) return authError("Choose your name.");
   if (!db.users[username]) return authError("No account yet — set one up first.");
+
+  if (db.users[username].password === null) {
+    const newPw = document.getElementById("login-new-password").value;
+    const confirmPw = document.getElementById("login-new-password-confirm").value;
+    if (!newPw || newPw.length < 4) return authError("New password must be at least 4 characters.");
+    if (newPw !== confirmPw) return authError("Passwords don't match — try again.");
+    db.users[username].password = newPw;
+    saveDB(db);
+    loginAs(username);
+    return;
+  }
+
+  const password = document.getElementById("login-password").value;
   if (db.users[username].password !== password) return authError("Wrong password. Ask Jakom to reset it if needed.");
   loginAs(username);
 }
@@ -2052,11 +2083,13 @@ function renderAdmin() {
   userBody.innerHTML = MEMBERS.map(m => {
     const u = db.users[m];
     const online = u && (Date.now() - u.lastSeen < 60000);
+    const needsReset = u && u.password === null;
+    const status = !u ? "Not signed up" : needsReset ? "Password reset — awaiting new one" : (online ? "Online" : "Registered");
     return `<tr>
       <td>${m}</td>
-      <td><span class="pill">${u ? (online ? "Online" : "Registered") : "Not signed up"}</span></td>
+      <td><span class="pill">${status}</span></td>
       <td>${u ? new Date(u.lastSeen).toLocaleString() : "—"}</td>
-      <td>${u ? `<button class="btn small-btn" onclick="openReset('${m}')">Reset password</button>` : ""}</td>
+      <td>${u && !needsReset ? `<button class="btn small-btn" onclick="resetPassword('${m}')">Reset password</button>` : ""}</td>
     </tr>`;
   }).join("");
 
@@ -2069,20 +2102,11 @@ function renderAdmin() {
   </tr>`).join("") : `<tr><td colspan="4" style="color:var(--muted);">No contributions yet.</td></tr>`;
 }
 
-let resetTarget = null;
-function openReset(username) {
-  resetTarget = username;
-  document.getElementById("reset-modal-name").textContent = `Setting a new password for ${username}.`;
-  openModal("reset-modal");
-}
-function submitReset() {
-  const pw = document.getElementById("reset-password").value;
-  if (!pw || pw.length < 4) return alert("Password must be at least 4 characters.");
+function resetPassword(username) {
+  if (!confirm(`Clear ${username}'s password? They'll set a brand new one themselves next time they log in — their account, messages, photos, and everything else stays exactly as is.`)) return;
   const db = loadDB();
-  db.users[resetTarget].password = pw;
+  db.users[username].password = null;
   saveDB(db);
-  document.getElementById("reset-password").value = "";
-  closeModal("reset-modal");
   renderAdmin();
 }
 
