@@ -1605,6 +1605,7 @@ function attachFile() {
       renderMessages();
     } catch (e) {
       console.error("Failed to upload chat image:", e);
+      alert("Photo failed to upload: " + errorDetail(e));
     }
   };
   inp.click();
@@ -1738,6 +1739,7 @@ function changeAvatar(member) {
       }
     } catch (e) {
       console.error("Failed to upload avatar image:", e);
+      alert("Photo failed to upload: " + errorDetail(e));
     }
   };
   inp.click();
@@ -1759,7 +1761,7 @@ function attachPostImage() {
       preview.innerHTML = `<img src="${pendingPostImage}">`;
     } catch (e) {
       console.error("Failed to upload post image:", e);
-      preview.innerHTML = `<span style="font-size:12px; color:#B5453A;">Photo failed to upload — try again.</span>`;
+      preview.innerHTML = `<span style="font-size:12px; color:#B5453A;">Upload failed: ${errorDetail(e)}</span>`;
     }
   };
   inp.click();
@@ -2057,6 +2059,7 @@ function uploadPhoto(member) {
         renderGalleryDetail();
       } catch (e) {
         console.error("Failed to upload photo:", e);
+        alert("Photo failed to upload: " + errorDetail(e));
       }
     }
   };
