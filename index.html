@@ -870,7 +870,7 @@ function defaultState() {
     gallery: { Jakom: [], Kwach: [], Omin: [], Omwanda: [] },
     posts: [],
     avatars: { Jakom: null, Kwach: null, Omin: null, Omwanda: null },
-    deletedIds: { messages: [], posts: [], goals: [] },
+    deletedIds: { messages: [], posts: [], goals: [], galleryPhotos: [] },
   };
 }
 
@@ -881,10 +881,11 @@ function ensureDefaults(db) {
   if (!db.messages) db.messages = [];
   if (!db.goals) db.goals = [];
   if (!db.users) db.users = {};
-  if (!db.deletedIds) db.deletedIds = { messages: [], posts: [], goals: [] };
+  if (!db.deletedIds) db.deletedIds = { messages: [], posts: [], goals: [], galleryPhotos: [] };
   if (!db.deletedIds.messages) db.deletedIds.messages = [];
   if (!db.deletedIds.posts) db.deletedIds.posts = [];
   if (!db.deletedIds.goals) db.deletedIds.goals = [];
+  if (!db.deletedIds.galleryPhotos) db.deletedIds.galleryPhotos = [];
   db.posts.forEach(p => {
     if (p.edited === undefined) p.edited = false;
     p.comments.forEach((c, ci) => {
@@ -1017,6 +1018,7 @@ function mergeStates(remote, local) {
     messages: mergeIdSets(remote.deletedIds && remote.deletedIds.messages, local.deletedIds && local.deletedIds.messages),
     posts: mergeIdSets(remote.deletedIds && remote.deletedIds.posts, local.deletedIds && local.deletedIds.posts),
     goals: mergeIdSets(remote.deletedIds && remote.deletedIds.goals, local.deletedIds && local.deletedIds.goals),
+    galleryPhotos: mergeIdSets(remote.deletedIds && remote.deletedIds.galleryPhotos, local.deletedIds && local.deletedIds.galleryPhotos),
   };
   const merged = {
     users: Object.assign({}, remote.users || {}, local.users || {}),
@@ -1030,7 +1032,7 @@ function mergeStates(remote, local) {
   MEMBERS.forEach(m => {
     const r = (remote.gallery && remote.gallery[m]) || [];
     const l = (local.gallery && local.gallery[m]) || [];
-    merged.gallery[m] = Array.from(new Set([...r, ...l]));
+    merged.gallery[m] = Array.from(new Set([...r, ...l])).filter(url => !deletedIds.galleryPhotos.includes(url));
   });
   return ensureDefaults(merged);
 }
@@ -2010,7 +2012,6 @@ function renderGalleryDetail() {
   const photos = db.gallery[member] || [];
   const cover = photos[0];
   const canAdd = session.username === member;
-  const canDeleteAny = session.username === "Jakom";
   const detail = document.getElementById("gallery-detail");
 
   const bgEl = document.getElementById("gallery-page-bg");
@@ -2022,10 +2023,10 @@ function renderGalleryDetail() {
     bgEl.classList.remove("active");
   }
 
-  const thumbs = photos.map((src, i) => `
+  const thumbs = photos.map((src) => `
     <div class="gallery-masonry-item" onclick="openLightbox('${src}')">
       <img src="${src}">
-      ${(canAdd || canDeleteAny) ? `<button class="remove-btn" onclick="event.stopPropagation(); removePhoto('${member}', ${i})">✕</button>` : ""}
+      ${canAdd ? `<button class="remove-btn" onclick="event.stopPropagation(); removePhoto('${member}', '${src}')">✕</button>` : ""}
     </div>`).join("");
   const addTile = canAdd ? `<div class="gallery-add-tile" onclick="uploadPhoto('${member}')">+ Add photo</div>` : "";
 
@@ -2069,9 +2070,10 @@ function uploadPhoto(member) {
   inp.click();
 }
 
-function removePhoto(member, index) {
+function removePhoto(member, url) {
   const db = loadDB();
-  db.gallery[member].splice(index, 1);
+  db.gallery[member] = db.gallery[member].filter(src => src !== url);
+  db.deletedIds.galleryPhotos.push(url);
   saveDB(db);
   renderGalleryDetail();
 }
